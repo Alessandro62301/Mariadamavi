@@ -4,14 +4,14 @@ Site institucional da Mavi (Apple por encomenda), em HTML puro — arquivo únic
 
 ## Arquivos
 
-- `mavi-landing.html` — homepage
+- `index.html` — homepage
 - `faq.html` — página de perguntas frequentes (com schema `FAQPage` para SEO)
 - `faq.md` — lista de referência com 100 temas de FAQ/comparativos pra expandir o conteúdo
 - `public/imgs/` — imagens reais usadas nas páginas
 
 ## Rodar localmente
 
-Abra `mavi-landing.html` direto no navegador, ou sirva a pasta com qualquer servidor estático:
+Abra `index.html` direto no navegador, ou sirva a pasta com qualquer servidor estático:
 
 ```bash
 npx serve .
