@@ -1,0 +1,1361 @@
+{
+  "produtos": [
+    {
+      "slug": "iphone-13-lacrado",
+      "nome": "iPhone 13 Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A15 Bionic",
+      "preco": 3897,
+      "precoApple": null,
+      "parcela12x": 369,
+      "parcela21x": 225,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-13-pink-select-2021?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/150"
+    },
+    {
+      "slug": "iphone-14-lacrado",
+      "nome": "iPhone 14 Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A15 Bionic",
+      "preco": 4197,
+      "precoApple": null,
+      "parcela12x": 397,
+      "parcela21x": 242,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-14-blue-select-202209?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/151"
+    },
+    {
+      "slug": "iphone-15-lacrado",
+      "nome": "iPhone 15 Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A16 Bionic",
+      "preco": 4497,
+      "precoApple": null,
+      "parcela12x": 426,
+      "parcela21x": 260,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-15-pink-select-202309?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/152"
+    },
+    {
+      "slug": "iphone-15-plus-lacrado",
+      "nome": "iPhone 15 Plus Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A16 Bionic",
+      "preco": 4697,
+      "precoApple": null,
+      "parcela12x": 445,
+      "parcela21x": 268,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-15-plus-pink-select-202309?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/164"
+    },
+    {
+      "slug": "iphone-17e",
+      "nome": "iPhone 17e",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A19",
+      "preco": 4397,
+      "precoApple": 5799,
+      "parcela12x": 416,
+      "parcela21x": 254,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-17-202509?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/159"
+    },
+    {
+      "slug": "iphone-16-lacrado",
+      "nome": "iPhone 16 Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A18",
+      "preco": 5097,
+      "precoApple": 6799,
+      "parcela12x": 483,
+      "parcela21x": 294,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-16-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/153"
+    },
+    {
+      "slug": "iphone-16-plus-lacrado",
+      "nome": "iPhone 16 Plus Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A18",
+      "preco": 6397,
+      "precoApple": 8499,
+      "parcela12x": 605,
+      "parcela21x": 364,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-plus-ultramarine-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/154"
+    },
+    {
+      "slug": "iphone-17",
+      "nome": "iPhone 17",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A19",
+      "preco": 5697,
+      "precoApple": 7999,
+      "parcela12x": 539,
+      "parcela21x": 329,
+      "storage": [
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-17-202509?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/155"
+    },
+    {
+      "slug": "iphone-17-air",
+      "nome": "iPhone 17 Air",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A19",
+      "preco": 6497,
+      "precoApple": 10499,
+      "parcela12x": 615,
+      "parcela21x": 369,
+      "storage": [
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-air-finish-select-cloudwhite-202509?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/156"
+    },
+    {
+      "slug": "iphone-17-pro",
+      "nome": "iPhone 17 Pro",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A19 Pro",
+      "preco": 8297,
+      "precoApple": 11499,
+      "parcela12x": 785,
+      "parcela21x": 479,
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-17-pro-202509?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/157"
+    },
+    {
+      "slug": "iphone-17-pro-max",
+      "nome": "iPhone 17 Pro Max",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A19 Pro",
+      "preco": 8997,
+      "precoApple": 12499,
+      "parcela12x": 851,
+      "parcela21x": 519,
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB",
+        "2TB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-17-pro-max-finish-select-silver-202509?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/158"
+    },
+    {
+      "slug": "iphone-12",
+      "nome": "iPhone 12",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A14 Bionic",
+      "preco": 2197,
+      "precoApple": null,
+      "parcela12x": 208,
+      "parcela21x": 127,
+      "storage": [
+        "64GB",
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-12-202109?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/101"
+    },
+    {
+      "slug": "iphone-12-pro",
+      "nome": "iPhone 12 Pro",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A14 Bionic",
+      "preco": 2897,
+      "precoApple": null,
+      "parcela12x": 275,
+      "parcela21x": 167,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-12-pro-graphite-hero?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/103"
+    },
+    {
+      "slug": "iphone-13",
+      "nome": "iPhone 13",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A15 Bionic",
+      "preco": 2697,
+      "precoApple": null,
+      "parcela12x": 256,
+      "parcela21x": 156,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-13-202109?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/107"
+    },
+    {
+      "slug": "iphone-14",
+      "nome": "iPhone 14",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A15 Bionic",
+      "preco": 2797,
+      "precoApple": null,
+      "parcela12x": 265,
+      "parcela21x": 162,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-14-202209?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/113"
+    },
+    {
+      "slug": "iphone-12-pro-max",
+      "nome": "iPhone 12 Pro Max",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A14 Bionic",
+      "preco": 3097,
+      "precoApple": null,
+      "parcela12x": 293,
+      "parcela21x": 179,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-12-pro-max-graphite-hero?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/105"
+    },
+    {
+      "slug": "iphone-14-plus",
+      "nome": "iPhone 14 Plus",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A15 Bionic",
+      "preco": 3397,
+      "precoApple": null,
+      "parcela12x": 322,
+      "parcela21x": 196,
+      "storage": [
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-14-plus-blue-select-202209?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/115"
+    },
+    {
+      "slug": "iphone-13-pro",
+      "nome": "iPhone 13 Pro",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A15 Bionic",
+      "preco": 3297,
+      "precoApple": null,
+      "parcela12x": 312,
+      "parcela21x": 190,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-13-pro-202109?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/109"
+    },
+    {
+      "slug": "iphone-15",
+      "nome": "iPhone 15",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A16 Bionic",
+      "preco": 3497,
+      "precoApple": null,
+      "parcela12x": 332,
+      "parcela21x": 200,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-15-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/121"
+    },
+    {
+      "slug": "iphone-13-pro-max",
+      "nome": "iPhone 13 Pro Max",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A15 Bionic",
+      "preco": 3497,
+      "precoApple": null,
+      "parcela12x": 332,
+      "parcela21x": 200,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-13-pro-max-graphite-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/111"
+    },
+    {
+      "slug": "iphone-14-pro",
+      "nome": "iPhone 14 Pro",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A16 Bionic",
+      "preco": 3597,
+      "precoApple": null,
+      "parcela12x": 341,
+      "parcela21x": 208,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-14-pro-202209?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/117"
+    },
+    {
+      "slug": "iphone-14-pro-max",
+      "nome": "iPhone 14 Pro Max",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A16 Bionic",
+      "preco": 3697,
+      "precoApple": null,
+      "parcela12x": 350,
+      "parcela21x": 214,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-14-pro-max-gold-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/119"
+    },
+    {
+      "slug": "iphone-15-plus",
+      "nome": "iPhone 15 Plus",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A16 Bionic",
+      "preco": 4097,
+      "precoApple": null,
+      "parcela12x": 388,
+      "parcela21x": 237,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-15-plus-blue-select-202309?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/123"
+    },
+    {
+      "slug": "iphone-15-pro",
+      "nome": "iPhone 15 Pro",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A17 Pro",
+      "preco": 4397,
+      "precoApple": null,
+      "parcela12x": 416,
+      "parcela21x": 254,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-15-pro-202309?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/124"
+    },
+    {
+      "slug": "iphone-16",
+      "nome": "iPhone 16",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A18",
+      "preco": 4397,
+      "precoApple": null,
+      "parcela12x": 416,
+      "parcela21x": 254,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-16-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/127"
+    },
+    {
+      "slug": "iphone-16-plus",
+      "nome": "iPhone 16 Plus",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A18",
+      "preco": 4897,
+      "precoApple": null,
+      "parcela12x": 464,
+      "parcela21x": 283,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-plus-ultramarine-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/128"
+    },
+    {
+      "slug": "iphone-15-pro-max",
+      "nome": "iPhone 15 Pro Max",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A17 Pro",
+      "preco": 4797,
+      "precoApple": null,
+      "parcela12x": 454,
+      "parcela21x": 277,
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-15-pro-max-naturaltitanium-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/126"
+    },
+    {
+      "slug": "iphone-16-pro",
+      "nome": "iPhone 16 Pro",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A18 Pro",
+      "preco": 5397,
+      "precoApple": null,
+      "parcela12x": 511,
+      "parcela21x": 311,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-16-pro-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/129"
+    },
+    {
+      "slug": "iphone-16-pro-max",
+      "nome": "iPhone 16 Pro Max",
+      "categoria": "iphones-seminovos",
+      "condicao": "seminovo",
+      "chip": "A18 Pro",
+      "preco": 5997,
+      "precoApple": null,
+      "parcela12x": 568,
+      "parcela21x": 346,
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-max-deserttitanium-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/130"
+    },
+    {
+      "slug": "macbook-neo-13",
+      "nome": "MacBook Neo 13\"",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M4",
+      "preco": 5997,
+      "precoApple": null,
+      "parcela12x": 568,
+      "parcela21x": 346,
+      "storage": [
+        "256GB SSD",
+        "512GB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba13-midnight-select-202503?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/308"
+    },
+    {
+      "slug": "macbook-air-m4-13",
+      "nome": "MacBook Air M4 13\"",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M4 (CPU 10 / GPU 10)",
+      "preco": 7497,
+      "precoApple": null,
+      "parcela12x": 710,
+      "parcela21x": 432,
+      "storage": [
+        "256GB SSD",
+        "512GB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba13-midnight-select-202503?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/305"
+    },
+    {
+      "slug": "macbook-air-m5-13",
+      "nome": "MacBook Air M5 13\"",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5",
+      "preco": 8197,
+      "precoApple": null,
+      "parcela12x": 776,
+      "parcela21x": 473,
+      "storage": [
+        "512GB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba13-midnight-select-202503?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/309"
+    },
+    {
+      "slug": "macbook-air-m4-15",
+      "nome": "MacBook Air M4 15\"",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M4 (CPU 10 / GPU 10)",
+      "preco": 8897,
+      "precoApple": null,
+      "parcela12x": 842,
+      "parcela21x": 513,
+      "storage": [
+        "256GB SSD",
+        "512GB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba15-midnight-select-202306?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/306"
+    },
+    {
+      "slug": "macbook-pro-14-m5",
+      "nome": "MacBook Pro 14\" M5",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5 (CPU 10 / GPU 10)",
+      "preco": 11497,
+      "precoApple": null,
+      "parcela12x": 1088,
+      "parcela21x": 663,
+      "storage": [
+        "512GB SSD",
+        "1TB SSD"
+      ],
+      "cores": [
+        "Cinza Espacial / Prateado"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp14-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/307"
+    },
+    {
+      "slug": "macbook-pro-14-2-m4-pro",
+      "nome": "MacBook Pro 14.2\" M4 Pro",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M4 Pro (CPU 12 / GPU 16)",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "512GB SSD"
+      ],
+      "cores": [
+        "Cinza Espacial / Prateado"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp14-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/303"
+    },
+    {
+      "slug": "macbook-pro-14-2-m4",
+      "nome": "MacBook Pro 14.2\" M4",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M4 (CPU 10 / GPU 10)",
+      "preco": 12897,
+      "precoApple": null,
+      "parcela12x": 1220,
+      "parcela21x": 744,
+      "storage": [
+        "512GB SSD"
+      ],
+      "cores": [
+        "Cinza Espacial / Prateado"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp14-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/302"
+    },
+    {
+      "slug": "macbook-pro-14-m5-max",
+      "nome": "MacBook Pro 14\" M5 Max",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5 Max (CPU 16 / GPU 40)",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "2TB SSD"
+      ],
+      "cores": [
+        "Cinza Espacial / Prateado"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp14-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/313"
+    },
+    {
+      "slug": "macbook-pro-16-m5-max",
+      "nome": "MacBook Pro 16\" M5 Max",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5 Max (CPU 16 / GPU 40)",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "2TB SSD"
+      ],
+      "cores": [
+        "Cinza Espacial / Prateado"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp16-silver-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/314"
+    },
+    {
+      "slug": "ipad-11-a16",
+      "nome": "iPad 11 A16",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "A16 Bionic",
+      "preco": 2997,
+      "precoApple": 4499,
+      "parcela12x": 284,
+      "parcela21x": 173,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-2022-hero-blue-wifi-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/250"
+    },
+    {
+      "slug": "ipad-mini-7a-geracao",
+      "nome": "iPad Mini 7a Geracao",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "A17 Pro",
+      "preco": 3797,
+      "precoApple": 6299,
+      "parcela12x": 316,
+      "parcela21x": 181,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-mini-select-wifi-purple-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/251"
+    },
+    {
+      "slug": "ipad-air-m3-11",
+      "nome": "iPad Air M3 11\"",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "M3",
+      "preco": 4597,
+      "precoApple": 7499,
+      "parcela12x": 435,
+      "parcela21x": 265,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-air-select-11in-wifi-blue-202405?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/252"
+    },
+    {
+      "slug": "ipad-air-m3-13",
+      "nome": "iPad Air M3 13\"",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "M3",
+      "preco": 6297,
+      "precoApple": 9999,
+      "parcela12x": 596,
+      "parcela21x": 358,
+      "storage": [
+        "128GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-air-select-11in-wifi-blue-202405?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/253"
+    },
+    {
+      "slug": "ipad-air-m4-11",
+      "nome": "iPad Air M4 11\"",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "M4",
+      "preco": 5397,
+      "precoApple": null,
+      "parcela12x": 511,
+      "parcela21x": 311,
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-air-select-11in-wifi-blue-202405?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/256"
+    },
+    {
+      "slug": "ipad-pro-m5-11",
+      "nome": "iPad Pro M5 11\"",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "M5",
+      "preco": 7097,
+      "precoApple": 12499,
+      "parcela12x": 672,
+      "parcela21x": 409,
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-pro-11-select-wifi-silver-202405?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/254"
+    },
+    {
+      "slug": "ipad-pro-m5-13",
+      "nome": "iPad Pro M5 13\"",
+      "categoria": "ipads",
+      "condicao": "lacrado",
+      "chip": "M5",
+      "preco": 9797,
+      "precoApple": 15999,
+      "parcela12x": 927,
+      "parcela21x": 565,
+      "storage": [
+        "256GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/ipad-pro-13-select-wifi-silver-202405?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/255"
+    },
+    {
+      "slug": "apple-watch-se-2a-ger-40mm",
+      "nome": "Apple Watch SE 2a Ger. 40mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S8",
+      "preco": 1897,
+      "precoApple": null,
+      "parcela12x": 180,
+      "parcela21x": 110,
+      "storage": [
+        "32GB"
+      ],
+      "cores": [
+        "Meia-noite"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-40-aluminum-starlight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/405"
+    },
+    {
+      "slug": "apple-watch-se-2a-ger-44mm",
+      "nome": "Apple Watch SE 2a Ger. 44mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S8",
+      "preco": 2097,
+      "precoApple": null,
+      "parcela12x": 199,
+      "parcela21x": 121,
+      "storage": [
+        "32GB"
+      ],
+      "cores": [
+        "Estelar"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-44-aluminum-midnight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/406"
+    },
+    {
+      "slug": "apple-watch-se-3-44mm",
+      "nome": "Apple Watch SE 3 44mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 2597,
+      "precoApple": 3699,
+      "parcela12x": 246,
+      "parcela21x": 150,
+      "storage": [
+        "64GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-44-aluminum-midnight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/414"
+    },
+    {
+      "slug": "apple-watch-se-3-40mm-gps-cell",
+      "nome": "Apple Watch SE 3 40mm GPS+Cell",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S9",
+      "preco": null,
+      "precoApple": 3899,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-40-aluminum-starlight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/415"
+    },
+    {
+      "slug": "apple-watch-se-3-44mm-gps-cell",
+      "nome": "Apple Watch SE 3 44mm GPS+Cell",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S9",
+      "preco": null,
+      "precoApple": 4299,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-44-aluminum-midnight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/416"
+    },
+    {
+      "slug": "apple-watch-se-2a-ger-44mm-gps-cell",
+      "nome": "Apple Watch SE 2a Ger. 44mm GPS+Cell",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S8",
+      "preco": 2497,
+      "precoApple": null,
+      "parcela12x": 237,
+      "parcela21x": 144,
+      "storage": [
+        "32GB"
+      ],
+      "cores": [
+        "Estelar"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-44-aluminum-starlight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/407"
+    },
+    {
+      "slug": "apple-watch-se-3-40mm",
+      "nome": "Apple Watch SE 3 40mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 2497,
+      "precoApple": 3299,
+      "parcela12x": 237,
+      "parcela21x": 144,
+      "storage": [
+        "64GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-40-aluminum-starlight-nc-se3_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/413"
+    },
+    {
+      "slug": "apple-watch-series-11-gps",
+      "nome": "Apple Watch Series 11 GPS",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 2897,
+      "precoApple": 5499,
+      "parcela12x": 275,
+      "parcela21x": 167,
+      "storage": [
+        "42mm",
+        "46mm"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-46-aluminum-jetblack-nc-s10?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/401"
+    },
+    {
+      "slug": "apple-watch-series-11-gps-cell-46mm",
+      "nome": "Apple Watch Series 11 GPS+Cell 46mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 4297,
+      "precoApple": 7199,
+      "parcela12x": 407,
+      "parcela21x": 248,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-46-aluminum-jetblack-nc-s10?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/403"
+    },
+    {
+      "slug": "apple-watch-series-11-titanium-42mm-gps-cell",
+      "nome": "Apple Watch Series 11 Titanium 42mm GPS+Cell",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-42-titanium-natural-cell-s11_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/417"
+    },
+    {
+      "slug": "apple-watch-series-11-titanium-46mm-gps-cell",
+      "nome": "Apple Watch Series 11 Titanium 46mm GPS+Cell",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/watch-case-46-titanium-slate-cell-s11_VW_PF?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/418"
+    },
+    {
+      "slug": "apple-watch-ultra-2-gps-cell-49mm",
+      "nome": "Apple Watch Ultra 2 GPS+Cell 49mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S9",
+      "preco": 4997,
+      "precoApple": null,
+      "parcela12x": 471,
+      "parcela21x": 288,
+      "storage": [
+        "64GB"
+      ],
+      "cores": [
+        "Titanio Natural / Preto"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/refurb-49-ultra-natural-titanium-ocean-navy_AV1?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/412"
+    },
+    {
+      "slug": "apple-watch-ultra-3-black-49mm",
+      "nome": "Apple Watch Ultra 3 Black 49mm",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 5297,
+      "precoApple": 10499,
+      "parcela12x": 501,
+      "parcela21x": 302,
+      "storage": [],
+      "cores": [
+        "Titanio Preto"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/refurb-49-ultra-black-titanium-ocean-black_AV1?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/410"
+    },
+    {
+      "slug": "apple-watch-ultra-3-natural-milanes",
+      "nome": "Apple Watch Ultra 3 Natural - Milanes",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 6997,
+      "precoApple": 10499,
+      "parcela12x": 662,
+      "parcela21x": 404,
+      "storage": [],
+      "cores": [
+        "Titanio Natural"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/refurb-49-ultra-natural-titanium-ocean-navy_AV1?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/409"
+    },
+    {
+      "slug": "apple-watch-ultra-3-black-milanes",
+      "nome": "Apple Watch Ultra 3 Black - Milanes",
+      "categoria": "apple-watch",
+      "condicao": "lacrado",
+      "chip": "S10",
+      "preco": 6797,
+      "precoApple": 10499,
+      "parcela12x": 643,
+      "parcela21x": 386,
+      "storage": [],
+      "cores": [
+        "Titanio Preto"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/refurb-49-ultra-black-titanium-ocean-black_AV1?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/411"
+    },
+    {
+      "slug": "airpods-4a-geracao",
+      "nome": "AirPods 4a Geracao",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": 1297,
+      "precoApple": null,
+      "parcela12x": 123,
+      "parcela21x": 75,
+      "storage": [],
+      "cores": [
+        "Branco"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-4-hero-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/502"
+    },
+    {
+      "slug": "airpods-4a-ger-c-anc",
+      "nome": "AirPods 4a Ger. c/ ANC",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": 1597,
+      "precoApple": null,
+      "parcela12x": 152,
+      "parcela21x": 93,
+      "storage": [],
+      "cores": [
+        "Branco"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-4-anc-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/503"
+    },
+    {
+      "slug": "airpods-pro-2a-geracao",
+      "nome": "AirPods Pro 2a Geracao",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": 1797,
+      "precoApple": null,
+      "parcela12x": 170,
+      "parcela21x": 104,
+      "storage": [],
+      "cores": [
+        "Branco"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-pro-2-hero-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/501"
+    },
+    {
+      "slug": "airpods-pro-3",
+      "nome": "AirPods Pro 3",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": 2097,
+      "precoApple": null,
+      "parcela12x": 199,
+      "parcela21x": 121,
+      "storage": [],
+      "cores": [
+        "Branco"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-pro-2-hero-select-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/505"
+    },
+    {
+      "slug": "airpods-max-usb-c",
+      "nome": "AirPods Max USB-C",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": 4197,
+      "precoApple": null,
+      "parcela12x": 397,
+      "parcela21x": 242,
+      "storage": [],
+      "cores": [
+        "Meia-noite"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-max-select-202409-midnight?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/504"
+    },
+    {
+      "slug": "macbook-air-m5-15",
+      "nome": "MacBook Air M5 15\"",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "512GB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba15-midnight-select-202503?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/310"
+    },
+    {
+      "slug": "macbook-pro-14-m5-pro",
+      "nome": "MacBook Pro 14\" M5 Pro",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5 Pro",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "1TB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp14-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/311"
+    },
+    {
+      "slug": "macbook-pro-16-m5-pro",
+      "nome": "MacBook Pro 16\" M5 Pro",
+      "categoria": "macbooks",
+      "condicao": "lacrado",
+      "chip": "M5 Pro",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "1TB SSD"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mbp16-spaceblack-cto-hero-202410?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/312"
+    },
+    {
+      "slug": "iphone-16-pro-lacrado",
+      "nome": "iPhone 16 Pro Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A18 Pro",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "128GB",
+        "256GB",
+        "512GB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-compare-iphone-16-pro-202409?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/162"
+    },
+    {
+      "slug": "iphone-16-pro-max-lacrado",
+      "nome": "iPhone 16 Pro Max Lacrado",
+      "categoria": "iphones-lacrados",
+      "condicao": "lacrado",
+      "chip": "A18 Pro",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "cores": [
+        "Todas as cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-max-deserttitanium-select?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/163"
+    },
+    {
+      "slug": "airpods-max-2",
+      "nome": "AirPods Max 2",
+      "categoria": "airpods",
+      "condicao": "lacrado",
+      "chip": "H2",
+      "preco": null,
+      "precoApple": null,
+      "parcela12x": null,
+      "parcela21x": null,
+      "storage": [
+        "Midnight",
+        "Starlight",
+        "Blue",
+        "Purple",
+        "Orange"
+      ],
+      "cores": [
+        "Varias cores"
+      ],
+      "imagem": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/airpods-max-select-202409-midnight?wid=400&hei=400&fmt=png-alpha",
+      "urlProduto": "https://jmsimports.com.br/#product/506"
+    }
+  ]
+}
