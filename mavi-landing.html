@@ -40,7 +40,8 @@
   }
 
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  section[id],main #topo{scroll-margin-top:96px}
   body{
     margin:0;
     background:var(--bg);
@@ -61,6 +62,10 @@
   @media(min-width:768px){section{padding:96px 0}}
   .lead{font-size:1.1rem;font-weight:500;color:var(--ink-soft);max-width:65ch}
   .center{text-align:center;margin-left:auto;margin-right:auto}
+
+  /* ===== Reveal ao rolar — motion leve, sem dependência (arquivo é HTML único, sem bundler) ===== */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity 600ms cubic-bezier(.16,.84,.44,1),transform 600ms cubic-bezier(.16,.84,.44,1)}
+  .reveal.is-visible{opacity:1;transform:none}
 
   a{color:inherit}
   .skip-link{position:absolute;left:-999px;top:0;background:var(--plum);color:var(--ivory);padding:12px 20px;z-index:100}
@@ -90,16 +95,17 @@
   .header-bar{
     max-width:var(--maxw);margin:0 auto;
     display:flex;align-items:center;justify-content:space-between;gap:16px;
-    background:var(--surface);border:1px solid var(--line);border-radius:999px;
+    background:var(--plum);border:1px solid rgba(247,240,232,.12);border-radius:999px;
     padding:8px 8px 8px 24px;min-height:64px;
-    box-shadow:0 10px 30px rgba(59,32,51,.10);
+    box-shadow:0 10px 30px rgba(59,32,51,.22);
   }
   @media(min-width:768px){.header-bar{padding:10px 10px 10px 28px;min-height:72px}}
   .wordmark{font-family:var(--font-wordmark);font-size:1.25rem;letter-spacing:.02em;color:var(--plum);text-decoration:none;flex:0 0 auto}
   @media(min-width:768px){.wordmark{font-size:1.4rem}}
+  .header-bar .wordmark{color:var(--ivory)}
   nav.primary-nav{display:none;align-items:center;gap:22px;font-weight:600;font-size:.9rem}
-  nav.primary-nav a{text-decoration:none;color:var(--ink);white-space:nowrap}
-  nav.primary-nav a:hover{color:var(--plum)}
+  nav.primary-nav a{text-decoration:none;color:rgba(247,240,232,.82);white-space:nowrap}
+  nav.primary-nav a:hover{color:var(--pink)}
   @media(min-width:960px){nav.primary-nav{display:flex}}
   .header-cta{
     display:none;align-items:center;gap:10px;background:var(--pink);color:var(--plum);
@@ -111,18 +117,18 @@
     display:grid;place-items:center;flex:0 0 auto;
   }
   .header-cta:hover{background:#f68fb0}
-  .header-cta:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+  .header-cta:focus-visible{outline:3px solid var(--ivory);outline-offset:2px}
   @media(min-width:640px){.header-cta{display:inline-flex}}
-  .menu-btn{display:inline-flex;background:none;border:none;border-radius:50%;padding:0;height:48px;width:48px;align-items:center;justify-content:center;color:var(--plum);flex:0 0 auto;margin-right:2px}
+  .menu-btn{display:inline-flex;background:none;border:none;border-radius:50%;padding:0;height:48px;width:48px;align-items:center;justify-content:center;color:var(--ivory);flex:0 0 auto;margin-right:2px}
   @media(min-width:640px){.menu-btn{display:none}}
   #mobile-nav{
     display:flex;flex-direction:column;gap:4px;font-weight:600;
-    max-width:var(--maxw);margin:8px auto 0;background:var(--surface);
-    border:1px solid var(--line);border-radius:20px;padding:12px 24px;
-    box-shadow:0 10px 30px rgba(59,32,51,.10);
+    max-width:var(--maxw);margin:8px auto 0;background:var(--plum);
+    border:1px solid rgba(247,240,232,.12);border-radius:20px;padding:12px 24px;
+    box-shadow:0 10px 30px rgba(59,32,51,.22);
   }
   #mobile-nav[hidden]{display:none}
-  #mobile-nav a{text-decoration:none;color:var(--ink);padding:10px 0;border-bottom:1px solid var(--line)}
+  #mobile-nav a{text-decoration:none;color:rgba(247,240,232,.85);padding:10px 0;border-bottom:1px solid rgba(247,240,232,.14)}
   #mobile-nav a:last-child{border-bottom:none}
   @media(min-width:640px){#mobile-nav{display:none!important}}
 
@@ -183,16 +189,26 @@
   .card p{color:var(--ink-soft);margin:0;font-size:.95rem}
   .section-plum .card p{color:rgba(247,240,232,.75)}
 
-  /* ===== Passos numerados ===== */
-  .passos{display:grid;grid-template-columns:1fr;gap:16px;margin:32px 0}
-  @media(min-width:640px){.passos{grid-template-columns:repeat(2,1fr)}}
-  @media(min-width:1000px){.passos{grid-template-columns:repeat(4,1fr)}}
-  .passo{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;text-align:left}
-  .passo .n{
-    font-family:var(--font-display);font-size:1.6rem;color:var(--plum);
-    width:44px;height:44px;border-radius:50%;background:var(--pink);
-    display:grid;place-items:center;margin-bottom:12px;
+  /* ===== Timeline do processo (linha conectando as etapas) ===== */
+  .timeline{position:relative;max-width:720px;margin:48px auto 8px}
+  .timeline::before{content:"";position:absolute;left:23px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .tl-item{position:relative;display:flex;gap:20px;padding:0 0 36px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-dot{
+    flex:0 0 auto;width:48px;height:48px;border-radius:50%;background:var(--pink);color:var(--plum);
+    display:grid;place-items:center;font-family:var(--font-display);font-size:1.4rem;
+    position:relative;z-index:2;box-shadow:0 0 0 6px var(--bg);
   }
+  .tl-content{padding-top:8px}
+  .tl-content h3{margin-bottom:6px}
+  .tl-content p{margin:0;color:var(--ink-soft);max-width:52ch}
+  .tl-thumb{
+    margin-top:14px;width:148px;aspect-ratio:4/3;border-radius:10px;
+    background:linear-gradient(160deg,#e9d9c8,#f1e3d4);border:1px dashed rgba(59,32,51,.32);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    font-size:1.5rem;color:var(--ink-soft);text-align:center;padding:8px;
+  }
+  .tl-thumb span{font-size:.68rem;line-height:1.3;max-width:112px}
 
   /* ===== Guia (Maria Victória) ===== */
   .guia-grid{display:grid;gap:36px;align-items:center}
@@ -202,7 +218,7 @@
   .produto-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:0;overflow:hidden;display:flex;flex-direction:column}
   .produto-img{aspect-ratio:4/3;background:linear-gradient(160deg,#efe1d2,#f7f0e8);border-bottom:1px solid var(--line);display:grid;place-items:center;color:var(--ink-soft);font-size:.85rem;text-align:center;padding:16px}
   .produto-body{padding:22px}
-  .nota-categoria{font-size:.85rem;color:var(--ink-soft);margin-top:-8px}
+  .nota-categoria{font-size:.85rem;color:var(--ink-soft);margin:4px 0 0}
 
   /* ===== Aparelho como entrada ===== */
   .callout{
@@ -224,6 +240,12 @@
   .prova-nome{margin:0;font-weight:700;font-size:.92rem;color:var(--plum)}
   .prova-handle{margin:2px 0 8px;font-size:.82rem;color:var(--rose)}
   .prova-produto{margin:0;font-size:.78rem;letter-spacing:.03em;color:var(--ink-soft);text-transform:uppercase}
+  .provas-grid .prova-card:nth-child(1){transition-delay:0ms}
+  .provas-grid .prova-card:nth-child(2){transition-delay:80ms}
+  .provas-grid .prova-card:nth-child(3){transition-delay:160ms}
+  .provas-grid .prova-card:nth-child(4){transition-delay:0ms}
+  .provas-grid .prova-card:nth-child(5){transition-delay:80ms}
+  .provas-grid .prova-card:nth-child(6){transition-delay:160ms}
 
   /* ===== FAQ ===== */
   .faq-item{border-bottom:1px solid var(--line)}
@@ -252,17 +274,26 @@
   .footer-signature{font-weight:600;margin-top:10px}
   .footer-note{font-size:.8rem;color:rgba(247,240,232,.55);margin-top:24px;max-width:70ch}
 
-  /* ===== CTA flutuante mobile ===== */
-  .cta-fixo{
-    position:fixed;left:12px;right:12px;bottom:12px;z-index:55;
-    background:var(--pink);color:var(--plum);text-align:center;padding:15px;
-    border-radius:var(--radius-btn);font-weight:800;text-decoration:none;
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    box-shadow:0 6px 20px rgba(59,32,51,.25);
+  /* ===== Bolha flutuante mobile (persona da Maria) ===== */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .cta-bubble{
+    position:fixed;right:16px;bottom:16px;z-index:55;
+    width:60px;height:60px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#e9d9c8,#f1e3d4);border:2px solid var(--pink);
+    box-shadow:0 8px 24px rgba(59,32,51,.28);text-decoration:none;
+    transition:transform 150ms ease-out,box-shadow 150ms ease-out;
   }
-  @media(min-width:768px){.cta-fixo{display:none}}
-  body{padding-bottom:78px}
-  @media(min-width:768px){body{padding-bottom:0}}
+  .cta-bubble:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(59,32,51,.32)}
+  .cta-bubble:active{transform:translateY(0)}
+  .cta-bubble:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+  .cta-bubble-avatar{font-size:1.6rem;line-height:1}
+  .cta-bubble-badge{
+    position:absolute;right:-4px;bottom:-4px;width:24px;height:24px;border-radius:50%;
+    background:#25D366;color:#fff;display:grid;place-items:center;border:2px solid var(--bg);
+  }
+  .cta-bubble-badge .ic{width:14px;height:14px}
+  @media(min-width:768px){.cta-bubble{display:none}}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
@@ -307,7 +338,7 @@
   <section class="hero" id="topo">
     <div class="container">
       <div class="hero-grid">
-        <div>
+        <div class="reveal">
           <p class="eyebrow">APPLE PARA A VIDA REAL</p>
           <h1>Seu próximo Apple não precisa ser uma escolha no escuro.</h1>
           <p class="lead">Eu te ajudo a comparar opções lacradas, CPO e seminovas, entender o que faz sentido pro seu uso e acompanhar cada etapa até a entrega.</p>
@@ -316,11 +347,9 @@
             <a class="btn btn-secondary" href="#como-funciona">Ver como funciona</a>
           </div>
         </div>
-        <figure>
-          <div class="img-slot" role="img" aria-label="Foto real de Maria Victória, à frente da Mavi">
-            <!-- SLOT IMAGEM: foto real de Maria Victória, retrato vertical 4:5, luz natural.
-                 TROCAR por <img src="..." alt="Maria Victória, à frente da Mavi."> -->
-            <span>📷 foto real de Maria Victória</span>
+        <figure class="reveal" style="transition-delay:120ms">
+          <div class="img-slot" style="padding:0">
+            <img src="public/imgs/maria-victoria-perfil.jpg" alt="Maria Victória, à frente da Mavi." style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-img)">
           </div>
           <figcaption>Maria Victória, à frente da Mavi.</figcaption>
         </figure>
@@ -344,17 +373,17 @@
       <p class="destaque">O mais caro nem sempre é o mais adequado. E o mais barato pode não atender ao que você precisa.</p>
 
       <div class="grid-3">
-        <div class="card">
+        <div class="card reveal" style="transition-delay:0ms">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
           <h3>Escolher sem entender</h3>
           <p>O modelo certo depende do seu uso, não do que está em promoção.</p>
         </div>
-        <div class="card">
+        <div class="card reveal" style="transition-delay:100ms">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <h3>Comprar sem saber com quem contar</h3>
           <p>Numa operação online, transparência e acompanhamento não são detalhe. São parte da decisão.</p>
         </div>
-        <div class="card">
+        <div class="card reveal" style="transition-delay:200ms">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h13l4 4v3h-3M3 12V6h13v6"/><circle cx="7.5" cy="19" r="1.6"/><circle cx="16.5" cy="19" r="1.6"/></svg>
           <h3>Ficar sozinha depois do pagamento</h3>
           <p>A experiência não termina quando o Pix cai. Ela continua até você receber.</p>
@@ -391,41 +420,62 @@
     <div class="container">
       <h2 class="center" style="max-width:20ch">Um caminho simples, explicado antes de você decidir.</h2>
       <p class="lead center" style="max-width:60ch">Do primeiro contato até o aparelho chegar na sua casa: cada etapa explicada antes de você precisar perguntar.</p>
-      <div class="passos">
-        <div class="passo">
-          <span class="n">1</span>
-          <h3>Contato inicial</h3>
-          <p>Você me chama contando o que procura e como pretende usar.</p>
+      <div class="timeline">
+        <div class="tl-item reveal" style="transition-delay:0ms">
+          <div class="tl-dot">1</div>
+          <div class="tl-content">
+            <h3>Contato inicial</h3>
+            <p>Você me chama contando o que procura e como pretende usar.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: print real da conversa inicial no WhatsApp]">💬<span>print da conversa</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">2</span>
-          <h3>Formulário</h3>
-          <p>Você preenche modelo, cor, armazenamento e endereço de entrega.</p>
+        <div class="tl-item reveal" style="transition-delay:60ms">
+          <div class="tl-dot">2</div>
+          <div class="tl-content">
+            <h3>Formulário</h3>
+            <p>Você preenche modelo, cor, armazenamento e endereço de entrega.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: print do formulário preenchido]">📝<span>print do formulário</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">3</span>
-          <h3>Contrato</h3>
-          <p>Preparamos o contrato com as condições combinadas: modelo, cor, valor e prazo.</p>
+        <div class="tl-item reveal" style="transition-delay:120ms">
+          <div class="tl-dot">3</div>
+          <div class="tl-content">
+            <h3>Contrato</h3>
+            <p>Preparamos o contrato com as condições combinadas: modelo, cor, valor e prazo.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: print do contrato gerado, dados ocultos]">📄<span>print do contrato</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">4</span>
-          <h3>Assinatura digital</h3>
-          <p>O contrato é assinado numa plataforma de assinatura eletrônica, com validade jurídica.</p>
+        <div class="tl-item reveal" style="transition-delay:180ms">
+          <div class="tl-dot">4</div>
+          <div class="tl-content">
+            <h3>Assinatura digital</h3>
+            <p>O contrato é assinado numa plataforma de assinatura eletrônica, com validade jurídica.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: print da assinatura eletrônica concluída]">✍️<span>assinatura concluída</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">5</span>
-          <h3>Pagamento</h3>
-          <p>Só depois do contrato assinado o pagamento é feito, via Pix ou cartão.</p>
+        <div class="tl-item reveal" style="transition-delay:240ms">
+          <div class="tl-dot">5</div>
+          <div class="tl-content">
+            <h3>Pagamento</h3>
+            <p>Só depois do contrato assinado o pagamento é feito, via Pix ou cartão.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: comprovante do pagamento, dados ocultos]">💳<span>comprovante do pagamento</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">6</span>
-          <h3>Chegada até nós</h3>
-          <p>Produtos que já estão no Brasil levam 2 dias úteis; produtos importados, 7 dias úteis.</p>
+        <div class="tl-item reveal" style="transition-delay:300ms">
+          <div class="tl-dot">6</div>
+          <div class="tl-content">
+            <h3>Chegada até nós</h3>
+            <p>Produtos que já estão no Brasil levam 2 dias úteis; produtos importados, 7 dias úteis.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: foto real da conferência do produto ao chegar]">📦<span>conferência do produto</span></div>
+          </div>
         </div>
-        <div class="passo">
-          <span class="n">7</span>
-          <h3>Entrega</h3>
-          <p>Você recebe na sua MaviBag, com rastreio e acompanhamento até a porta.</p>
+        <div class="tl-item reveal" style="transition-delay:360ms">
+          <div class="tl-dot">7</div>
+          <div class="tl-content">
+            <h3>Entrega</h3>
+            <p>Você recebe na sua MaviBag, com rastreio e acompanhamento até a porta.</p>
+            <div class="tl-thumb" role="img" aria-label="[SUBSTITUIR: foto real da MaviBag entregue ao cliente]">🛍️<span>sua MaviBag chegando</span></div>
+          </div>
         </div>
       </div>
       <div class="center" style="margin-top:12px">
@@ -442,17 +492,17 @@
       <p class="lead">Em vez de começar pelo preço ou pelo modelo mais novo, a gente começa pelo que o aparelho precisa fazer por você.</p>
 
       <div class="grid-3">
-        <div class="card">
+        <div class="card reveal" style="transition-delay:0ms">
           <div style="aspect-ratio:4/3;border-radius:8px;background:rgba(247,240,232,.08);display:grid;place-items:center;color:rgba(247,240,232,.6);font-size:.8rem;margin-bottom:14px">📷 iPhone</div>
           <h3 style="color:var(--ivory)">iPhone</h3>
           <p>Comunicação, criação, trabalho e rotina.</p>
         </div>
-        <div class="card">
+        <div class="card reveal" style="transition-delay:100ms">
           <div style="aspect-ratio:4/3;border-radius:8px;background:rgba(247,240,232,.08);display:grid;place-items:center;color:rgba(247,240,232,.6);font-size:.8rem;margin-bottom:14px">📷 iPad</div>
           <h3 style="color:var(--ivory)">iPad</h3>
           <p>Estudo, organização, leitura e mobilidade.</p>
         </div>
-        <div class="card">
+        <div class="card reveal" style="transition-delay:200ms">
           <div style="aspect-ratio:4/3;border-radius:8px;background:rgba(247,240,232,.08);display:grid;place-items:center;color:rgba(247,240,232,.6);font-size:.8rem;margin-bottom:14px">📷 MacBook</div>
           <h3 style="color:var(--ivory)">MacBook</h3>
           <p>Produtividade, estudo e trabalho com mais estrutura.</p>
@@ -523,7 +573,7 @@
       <p class="destaque on-plum" style="font-size:clamp(1.3rem,4vw,1.9rem)">Sua encomenda chega numa MaviBag. O momento de abrir também faz parte da experiência.</p>
 
       <div class="provas-grid">
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -531,7 +581,7 @@
             <p class="prova-produto">[Produto comprado]</p>
           </div>
         </div>
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -539,7 +589,7 @@
             <p class="prova-produto">[Produto comprado]</p>
           </div>
         </div>
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -547,7 +597,7 @@
             <p class="prova-produto">[Produto comprado]</p>
           </div>
         </div>
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -555,7 +605,7 @@
             <p class="prova-produto">[Produto comprado]</p>
           </div>
         </div>
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -563,7 +613,7 @@
             <p class="prova-produto">[Produto comprado]</p>
           </div>
         </div>
-        <div class="prova-card">
+        <div class="prova-card reveal">
           <div class="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">📷 [foto do cliente]</div>
           <div class="prova-info">
             <p class="prova-nome">[Nome do cliente]</p>
@@ -675,9 +725,12 @@
   </div>
 </footer>
 
-<a class="cta-fixo" href="https://wa.me/5521920184210?text=Oi%2C%20Mavi%21%20Vim%20pelo%20site%20e%20quero%20ajuda%20para%20escolher%20meu%20pr%C3%B3ximo%20Apple." aria-label="Conversar com a Mavi no WhatsApp">
-  <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.6 14.2c-.2.6-1.3 1.2-1.9 1.3-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5.1-4.5-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.2-.3.5-.4.7-.4h.5c.2 0 .4 0 .6.5.2.6.7 1.9.8 2 .1.2.1.4 0 .6-.1.2-.1.3-.3.5-.1.2-.3.4-.4.5-.1.1-.3.3-.1.6.2.3.9 1.5 2 2.4 1.3 1.2 2.4 1.5 2.7 1.7.3.2.5.1.6-.1.2-.2.7-.8.9-1.1.2-.3.4-.2.6-.1.2.1 1.5.7 1.7.8.2.1.4.2.4.3.1.2.1.7-.1 1.3z"/></svg>
-  Conversar com a Mavi no WhatsApp
+<a class="cta-bubble" href="https://wa.me/5521920184210?text=Oi%2C%20Mavi%21%20Vim%20pelo%20site%20e%20quero%20ajuda%20para%20escolher%20meu%20pr%C3%B3ximo%20Apple.">
+  <span class="cta-bubble-avatar" role="img" aria-label="[SUBSTITUIR: foto real de Maria Victória]">👩🏻</span>
+  <span class="cta-bubble-badge" aria-hidden="true">
+    <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.6 14.2c-.2.6-1.3 1.2-1.9 1.3-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5.1-4.5-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.2-.3.5-.4.7-.4h.5c.2 0 .4 0 .6.5.2.6.7 1.9.8 2 .1.2.1.4 0 .6-.1.2-.1.3-.3.5-.1.2-.3.4-.4.5-.1.1-.3.3-.1.6.2.3.9 1.5 2 2.4 1.3 1.2 2.4 1.5 2.7 1.7.3.2.5.1.6-.1.2-.2.7-.8.9-1.1.2-.3.4-.2.6-.1.2.1 1.5.7 1.7.8.2.1.4.2.4.3.1.2.1.7-.1 1.3z"/></svg>
+  </span>
+  <span class="sr-only">Conversar com a Mavi no WhatsApp</span>
 </a>
 
 <script>
@@ -691,6 +744,25 @@
       botao.nextElementSibling.hidden = aberto;
     });
   });
+})();
+
+/* REVEAL — anima elementos com classe .reveal (fade + leve deslocamento) quando entram na tela.
+   Vanilla JS, sem framer-motion nem bundler: este arquivo é HTML único e portátil, não um app React. */
+(function(){
+  var elementos = document.querySelectorAll('.reveal');
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    elementos.forEach(function(el){ el.classList.add('is-visible'); });
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+  elementos.forEach(function(el){ observer.observe(el); });
 })();
 </script>
 </body>
