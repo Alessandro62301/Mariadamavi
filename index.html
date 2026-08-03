@@ -161,11 +161,14 @@
   .ic{width:22px;height:22px;flex:0 0 auto;vertical-align:middle}
 
   /* ===== Destaque (pull-quote) ===== */
+  /* Alinhado à esquerda, igual ao resto do corpo de texto da seção — evitar o "zigue-zague"
+     de um parágrafo centralizado solto no meio de texto alinhado à esquerda. */
   .destaque{
-    font-family:var(--font-display);font-size:clamp(1.6rem,5vw,2.6rem);line-height:1;
-    color:var(--plum);text-align:center;margin:40px auto;max-width:640px;
+    font-family:var(--font-display);font-size:clamp(1.6rem,5vw,2.4rem);line-height:1.05;
+    color:var(--plum);text-align:left;margin:32px 0;max-width:44ch;
   }
   .destaque.on-plum{color:var(--ivory)}
+  .destaque.center{text-align:center;margin-left:auto;margin-right:auto}
 
   /* ===== Seção ameixa (fundo escuro) ===== */
   .section-plum{background:var(--plum);color:var(--ivory)}
@@ -418,7 +421,7 @@
   <!-- ============ COMO FUNCIONA ============ -->
   <section id="como-funciona">
     <div class="container">
-      <h2 class="center" style="max-width:20ch">Um caminho simples, explicado antes de você decidir.</h2>
+      <h2 class="center">Um caminho simples, explicado antes de você decidir.</h2>
       <p class="lead center" style="max-width:60ch">Do primeiro contato até o aparelho chegar na sua casa: cada etapa explicada antes de você precisar perguntar.</p>
       <div class="timeline">
         <div class="tl-item reveal" style="transition-delay:0ms">
@@ -488,7 +491,7 @@
   <section id="produtos" class="section-plum">
     <div class="container">
       <p class="eyebrow">ESCOLHA CONSCIENTE</p>
-      <h2 style="max-width:20ch">Tecnologia pra viver, trabalhar e crescer com mais estrutura.</h2>
+      <h2>Tecnologia pra viver, trabalhar e crescer com mais estrutura.</h2>
       <p class="lead">Em vez de começar pelo preço ou pelo modelo mais novo, a gente começa pelo que o aparelho precisa fazer por você.</p>
 
       <div class="grid-3">
@@ -520,7 +523,7 @@
   <section id="seguranca">
     <div class="container">
       <p class="eyebrow">CLAREZA EM CADA ETAPA</p>
-      <h2 style="max-width:22ch">Comprar online pede processo, não promessa vazia.</h2>
+      <h2>Comprar online pede processo, não promessa vazia.</h2>
       <p class="lead">A Mavi é uma operação 100% online, baseada em Niterói/RJ. Por isso, você entende como a compra funciona antes de pagar qualquer coisa.</p>
 
       <ul class="ico-list">
@@ -555,7 +558,7 @@
   <!-- ============ APARELHO COMO ENTRADA ============ -->
   <section id="entrada">
     <div class="container" style="max-width:820px">
-      <h2 style="max-width:18ch">Seu aparelho atual pode ajudar no próximo passo.</h2>
+      <h2>Seu aparelho atual pode ajudar no próximo passo.</h2>
       <div class="callout">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 9l-1 3 1 3M21 9l1 3-1 3"/></svg>
         <p>Seu iPhone usado pode ser avaliado como parte do pagamento. O valor aprovado é abatido do novo aparelho, conforme a avaliação do seu caso.</p>
@@ -568,7 +571,7 @@
   <section id="provas" class="section-plum">
     <div class="container">
       <p class="eyebrow">DA CONVERSA À ENTREGA</p>
-      <h2 style="max-width:20ch">Confiança se constrói mostrando o processo.</h2>
+      <h2>Confiança se constrói mostrando o processo.</h2>
       <p class="lead">Aqui entram bastidores reais, entregas e feedbacks autorizados, cada um preservando nome, documento, endereço e código de rastreio.</p>
       <p class="destaque on-plum" style="font-size:clamp(1.3rem,4vw,1.9rem)">Sua encomenda chega numa MaviBag. O momento de abrir também faz parte da experiência.</p>
 
