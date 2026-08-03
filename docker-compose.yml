@@ -22,7 +22,7 @@ services:
     build: .
     labels:
       - traefik.enable=true
-      - traefik.http.services.mavi.loadbalancer.server.port=3000
+      - traefik.http.services.mavi.loadbalancer.server.port=80
       # HTTPS
       - traefik.http.routers.mavi.rule=Host(`mariadamavi.com.br`) || Host(`www.mariadamavi.com.br`)
       - traefik.http.routers.mavi.entrypoints=websecure
