@@ -1,38 +1,10 @@
 services:
-  traefik:
-    image: traefik:v3.1
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.le.acme.httpchallenge=true
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - letsencrypt:/letsencrypt
-    restart: unless-stopped
-
   web:
     build: .
     labels:
       - traefik.enable=true
       - traefik.http.services.mavi.loadbalancer.server.port=80
-      # HTTPS
       - traefik.http.routers.mavi.rule=Host(`mariadamavi.com.br`) || Host(`www.mariadamavi.com.br`)
       - traefik.http.routers.mavi.entrypoints=websecure
-      - traefik.http.routers.mavi.tls.certresolver=le
-      # redireciona HTTP -> HTTPS
-      - traefik.http.routers.mavi-http.rule=Host(`mariadamavi.com.br`) || Host(`www.mariadamavi.com.br`)
-      - traefik.http.routers.mavi-http.entrypoints=web
-      - traefik.http.routers.mavi-http.middlewares=mavi-https-redirect
-      - traefik.http.middlewares.mavi-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.mavi.tls.certresolver=letsencrypt
     restart: unless-stopped
-
-volumes:
-  letsencrypt:

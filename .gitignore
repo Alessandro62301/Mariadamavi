@@ -1,6 +1,2 @@
 # sistema
 .DS_Store
-
-# env files (pode versionar se quiser, exceto o real)
-.env*
-!.env.example

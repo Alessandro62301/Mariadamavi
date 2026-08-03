@@ -19,10 +19,12 @@ npx serve .
 
 ## Deploy (Docker)
 
+Este projeto **não sobe o próprio Traefik** — ele se conecta ao Traefik que já roda fixo na VPS (rede `host`, entrypoints `web`/`websecure`, certresolver `letsencrypt`). Só é preciso subir o serviço `web`:
+
 ```bash
-cp .env.example .env
-# edite o .env com seu e-mail real (ACME_EMAIL=...)
 docker compose up -d --build
 ```
 
-Sobe um Nginx servindo os arquivos estáticos atrás de um Traefik com HTTPS automático (Let's Encrypt) para `mariadamavi.com.br`.
+As labels em `docker-compose.yml` fazem o Traefik já existente descobrir o container automaticamente e emitir o certificado para `mariadamavi.com.br` e `www.mariadamavi.com.br`.
+
+Se a VPS não tiver um Traefik fixo rodando, adapte o `docker-compose.yml` para subir um Traefik próprio (com `ACME_EMAIL` e volume de certificado) antes do `web`.
