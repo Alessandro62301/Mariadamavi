@@ -1,30 +1,34 @@
 # Mavi
 
-Site institucional da Mavi (Apple por encomenda), em HTML puro — arquivo único, sem build, sem framework.
+App Next.js (App Router) com o site institucional da Mavi e o `/buscador` interno.
 
-## Arquivos
+## Estrutura
 
-- `index.html` — homepage
-- `faq.html` — página de perguntas frequentes (com schema `FAQPage` para SEO)
+- `app/page.tsx` — homepage
+- `app/faq/page.tsx` — perguntas frequentes (com schema `FAQPage` para SEO)
+- `app/buscador/` — buscador interno (login único + listagem de ofertas), protegido por `middleware.ts`
+- `app/api/buscador/` — rotas server-side que fazem a ponte com a API upstream (Conecta Lojista/BuskaPhone)
+- `lib/upstream.ts` — cliente axios da API upstream; sem `BUSCADOR_API_BASE_URL` configurado, usa dados de exemplo (`lib/mock-ofertas.ts`) automaticamente
 - `faq.md` — lista de referência com 100 temas de FAQ/comparativos pra expandir o conteúdo
-- `public/imgs/` — imagens reais usadas nas páginas
+- `_archive-html-estatico/` — versão anterior em HTML puro, mantida só de referência local (fora do git)
 
 ## Rodar localmente
 
-Abra `index.html` direto no navegador, ou sirva a pasta com qualquer servidor estático:
-
 ```bash
-npx serve .
+npm install
+cp .env.example .env.local
+# preencha AUTH_SECRET, BUSCADOR_USER e BUSCADOR_PASS
+npm run dev
 ```
+
+Abra `http://localhost:3000`. O `/buscador` pede login com o usuário/senha definidos no `.env.local`.
 
 ## Deploy (Docker)
 
-Este projeto **não sobe o próprio Traefik** — ele se conecta ao Traefik que já roda fixo na VPS (rede `host`, entrypoints `web`/`websecure`, certresolver `letsencrypt`). Só é preciso subir o serviço `web`:
+Este projeto **não sobe o próprio Traefik** — ele se conecta ao Traefik que já roda fixo na VPS (rede `host`, entrypoints `web`/`websecure`, certresolver `letsencrypt`).
 
 ```bash
+cp .env.example .env
+# preencha AUTH_SECRET, BUSCADOR_USER, BUSCADOR_PASS (e BUSCADOR_API_* quando tiver a credencial real)
 docker compose up -d --build
 ```
-
-As labels em `docker-compose.yml` fazem o Traefik já existente descobrir o container automaticamente e emitir o certificado para `mariadamavi.com.br` e `www.mariadamavi.com.br`.
-
-Se a VPS não tiver um Traefik fixo rodando, adapte o `docker-compose.yml` para subir um Traefik próprio (com `ACME_EMAIL` e volume de certificado) antes do `web`.

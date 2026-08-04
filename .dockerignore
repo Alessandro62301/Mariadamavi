@@ -1,4 +1,10 @@
+node_modules
+.next
 .git
 .claude
-.env*
+.env
+.env.local
+.env*.local
+npm-debug.log*
+_archive-html-estatico
 faq.md
