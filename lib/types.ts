@@ -12,6 +12,7 @@ export type Oferta = {
   data_atualizacao: string;
   created_at: string;
   verificado: boolean;
+  fornecedor?: string | null;
 };
 
 export type Contato = {

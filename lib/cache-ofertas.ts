@@ -50,6 +50,7 @@ function paraOferta(item: {
   dataAtualizacao: string;
   createdAtOrigem: Date | null;
   verificado: boolean;
+  fornecedor: string | null;
 }): Oferta {
   return {
     id: item.id,
@@ -65,6 +66,7 @@ function paraOferta(item: {
     data_atualizacao: item.dataAtualizacao,
     created_at: item.createdAtOrigem?.toISOString() ?? "",
     verificado: item.verificado,
+    fornecedor: item.fornecedor,
   };
 }
 
@@ -73,7 +75,7 @@ export async function cacheOfertasFresco() {
   return Boolean(controle && controle.total > 0 && Date.now() - controle.atualizadoEm.getTime() < TTL_CACHE_MS);
 }
 
-export async function salvarCacheOfertas(ofertas: Oferta[], status: Status) {
+export async function salvarCacheOfertas(ofertas: Oferta[], status: Status, fornecedores = new Map<number, string>()) {
   const agora = new Date();
   const registros = ofertas.filter((oferta) => Number.isFinite(oferta.id) && Boolean(oferta.modelo)).map((oferta) => ({
     id: oferta.id,
@@ -92,6 +94,7 @@ export async function salvarCacheOfertas(ofertas: Oferta[], status: Status) {
     dataAtualizacao: String(oferta.data_atualizacao ?? ""),
     createdAtOrigem: dataValida(oferta.created_at),
     verificado: oferta.verificado,
+    fornecedor: fornecedores.get(oferta.id) ?? null,
     atualizadoEm: agora,
   }));
 

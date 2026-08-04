@@ -2,15 +2,24 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { FiltrosDisponiveis, Oferta, OfertasResponse, Status } from "@/lib/types";
+import type { FiltrosDisponiveis, Oferta, OfertasResponse } from "@/lib/types";
 import { GridIcon, ListIcon, WhatsAppIcon } from "@/components/icons";
 import Link from "next/link";
+import { SelectDropdown } from "@/components/select-dropdown";
 
 type Visualizacao = "lista" | "grade";
 
 const QUANTIDADES_POR_PAGINA = [10, 25, 50, 100];
 const LIMITE_MODELOS = 7;
-const CATEGORIAS = ["iphone", "ipad", "macbook", "apple watch"];
+const CATEGORIAS = ["iphone", "ipad", "macbook", "watch", "acessorios", "eletronicos"];
+const ROTULOS_CATEGORIA: Record<string, string> = {
+  iphone: "iPhone",
+  ipad: "iPad",
+  macbook: "MacBook",
+  watch: "Apple Watch",
+  acessorios: "Acessórios",
+  eletronicos: "Eletrônicos",
+};
 
 function extrairArmazenamento(modelo: string, variante?: string | null) {
   const texto = `${modelo} ${variante ?? ""}`;
@@ -73,11 +82,10 @@ function BuscadorConteudo() {
   const estado = searchParams.get("estado") ?? "";
   const cidade = searchParams.get("cidade") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "recentes";
+  const sort = searchParams.get("sort") ?? "menor-preco";
   const page = numeroPositivo(searchParams.get("page"), 1);
   const itensPorPagina = numeroPositivo(searchParams.get("itensPorPagina"), 25);
 
-  const [status, setStatus] = useState<Status | null>(null);
   const [todasOfertas, setTodasOfertas] = useState<Oferta[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -101,22 +109,19 @@ function BuscadorConteudo() {
     const controller = new AbortController();
 
     Promise.all([
-      fetch("/api/buscador/status", { signal: controller.signal }),
       fetch("/api/buscador/ofertas", { signal: controller.signal }),
       fetch("/api/buscador/configuracoes", { signal: controller.signal }),
     ])
-      .then(async ([statusResponse, ofertasResponse, configuracoesResponse]) => {
-        if (statusResponse.status === 401 || ofertasResponse.status === 401 || configuracoesResponse.status === 401) {
+      .then(async ([ofertasResponse, configuracoesResponse]) => {
+        if (ofertasResponse.status === 401 || configuracoesResponse.status === 401) {
           router.push("/buscador/login");
           return;
         }
-        if (!statusResponse.ok || !ofertasResponse.ok || !configuracoesResponse.ok) throw new Error("Falha ao carregar o catálogo.");
-        const [novoStatus, catalogo, configuracoes] = await Promise.all([
-          statusResponse.json(),
+        if (!ofertasResponse.ok || !configuracoesResponse.ok) throw new Error("Falha ao carregar o catálogo.");
+        const [catalogo, configuracoes] = await Promise.all([
           ofertasResponse.json() as Promise<OfertasResponse>,
           configuracoesResponse.json(),
         ]);
-        setStatus(novoStatus);
         setTodasOfertas(catalogo.items);
         const paramsAtuais = new URLSearchParams(window.location.search);
         if (!paramsAtuais.has("categoria")) {
@@ -151,6 +156,12 @@ function BuscadorConteudo() {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = overflowAnterior; };
   }, [filtrosAbertos]);
+
+  const status = useMemo(() => ({
+    total: todasOfertas.length,
+    fornecedores: new Set(todasOfertas.map((oferta) => oferta.fornecedor?.trim()).filter(Boolean)).size,
+    cidades: new Set(todasOfertas.map((oferta) => oferta.cidade.trim()).filter(Boolean)).size,
+  }), [todasOfertas]);
 
   const filtros = useMemo<FiltrosDisponiveis>(() => {
     const categorias = CATEGORIAS.map((valor) => ({
@@ -277,7 +288,7 @@ function BuscadorConteudo() {
     <div className="busca-shell">
       <header className="busca-header">
         <span className="busca-marca"><span className="wordmark">MARIADAMAVI</span><span aria-hidden="true">·</span> Catálogo</span>
-        {status && (
+        {!carregando && (
           <div className="stats" aria-label="Resumo do catálogo">
             <span><b>{status.total.toLocaleString("pt-BR")}</b> ofertas</span>
             <span><b>{status.fornecedores.toLocaleString("pt-BR")}</b> fornecedores</span>
@@ -315,7 +326,7 @@ function BuscadorConteudo() {
                       onChange={() => mudarCategoria(categoria === item.valor ? "" : item.valor)}
                     />
                     <span className="categoria-check" aria-hidden="true" />
-                    <span className="categoria-nome">{item.valor}</span>
+                    <span className="categoria-nome">{ROTULOS_CATEGORIA[item.valor] ?? item.valor}</span>
                     <span className="categoria-total">{item.total.toLocaleString("pt-BR")}</span>
                   </label>
                 ))}
@@ -351,54 +362,55 @@ function BuscadorConteudo() {
             </div>
 
             <div className="grupo-filtro">
-              <label htmlFor="filtro-condicao">Condição</label>
-              <select id="filtro-condicao" value={condicao} onChange={(event) => alterarFiltro("condicao", event.target.value)} disabled={!filtros}>
-                <option value="">Todos</option>
-                {filtros?.condicoes.map((item) => (
-                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
-                ))}
-              </select>
+              <span className="grupo-filtro__rotulo">Condição</span>
+              <SelectDropdown
+                ariaLabel="Condição"
+                value={condicao}
+                onChange={(value) => alterarFiltro("condicao", value)}
+                options={[{ value: "", label: "Todos" }, ...filtros.condicoes.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+              />
             </div>
 
             <div className="grupo-filtro grupo-filtro--duplo">
               <div>
-                <label htmlFor="filtro-estado">Estado</label>
-                <select id="filtro-estado" value={estado} onChange={(event) => mudarEstado(event.target.value)} disabled={!filtros}>
-                  <option value="">Todos</option>
-                  {filtros?.estados.map((item) => (
-                    <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
-                  ))}
-                </select>
+                <span className="grupo-filtro__rotulo">Estado</span>
+                <SelectDropdown
+                  ariaLabel="Estado"
+                  value={estado}
+                  onChange={mudarEstado}
+                  options={[{ value: "", label: "Todos" }, ...filtros.estados.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                />
               </div>
               <div>
-                <label htmlFor="filtro-cidade">Cidade</label>
-                <select id="filtro-cidade" value={cidade} onChange={(event) => alterarFiltro("cidade", event.target.value)} disabled={!filtros || !estado}>
-                  <option value="">Todas</option>
-                  {cidadesDoEstado.map((item) => (
-                    <option key={item.valor} value={item.valor}>{item.valor.replace(/,\s*[A-Z]{2}$/i, "")} — {item.total.toLocaleString("pt-BR")}</option>
-                  ))}
-                </select>
+                <span className="grupo-filtro__rotulo">Cidade</span>
+                <SelectDropdown
+                  ariaLabel="Cidade"
+                  value={cidade}
+                  disabled={!estado}
+                  onChange={(value) => alterarFiltro("cidade", value)}
+                  options={[{ value: "", label: "Todas" }, ...cidadesDoEstado.map((item) => ({ value: item.valor, label: `${item.valor.replace(/,\s*[A-Z]{2}$/i, "")} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                />
               </div>
             </div>
 
             <div className="grupo-filtro">
-              <label htmlFor="filtro-cor">Cor</label>
-              <select id="filtro-cor" value={cor} onChange={(event) => alterarFiltro("cor", event.target.value)} disabled={!filtros}>
-                <option value="">Todas as cores</option>
-                {filtros?.cores.map((item) => (
-                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
-                ))}
-              </select>
+              <span className="grupo-filtro__rotulo">Cor</span>
+              <SelectDropdown
+                ariaLabel="Cor"
+                value={cor}
+                onChange={(value) => alterarFiltro("cor", value)}
+                options={[{ value: "", label: "Todas as cores" }, ...filtros.cores.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+              />
             </div>
 
             <div className="grupo-filtro">
-              <label htmlFor="filtro-armazenamento">Armazenamento</label>
-              <select id="filtro-armazenamento" value={armazenamento} onChange={(event) => alterarFiltro("armazenamento", event.target.value)} disabled={!filtros}>
-                <option value="">Todos</option>
-                {filtros?.armazenamentos.map((item) => (
-                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
-                ))}
-              </select>
+              <span className="grupo-filtro__rotulo">Armazenamento</span>
+              <SelectDropdown
+                ariaLabel="Armazenamento"
+                value={armazenamento}
+                onChange={(value) => alterarFiltro("armazenamento", value)}
+                options={[{ value: "", label: "Todos" }, ...filtros.armazenamentos.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+              />
             </div>
             <div className="painel-filtros__rodape">
               <button type="button" onClick={() => setFiltrosAbertos(false)}>Ver {resultado.total.toLocaleString("pt-BR")} produtos</button>
@@ -433,19 +445,25 @@ function BuscadorConteudo() {
                   }
                 }}
               />
-              <select aria-label="Ordenar ofertas" value={sort} onChange={(event) => alterarFiltro("sort", event.target.value)}>
-                <option value="recentes">Mais recentes</option>
-                <option value="menor-preco">Menor preço</option>
-                <option value="maior-preco">Maior preço</option>
-                <option value="a-z">Modelo: A → Z</option>
-              </select>
-              <select
-                aria-label="Itens por página"
-                value={itensPorPagina}
-                onChange={(event) => alterarFiltro("itensPorPagina", event.target.value)}
-              >
-                {QUANTIDADES_POR_PAGINA.map((quantidade) => <option key={quantidade} value={quantidade}>{quantidade} por página</option>)}
-              </select>
+              <SelectDropdown
+                className="select-ordenacao"
+                ariaLabel="Ordenar ofertas"
+                value={sort}
+                onChange={(value) => alterarFiltro("sort", value)}
+                options={[
+                  { value: "menor-preco", label: "Menor preço" },
+                  { value: "maior-preco", label: "Maior preço" },
+                  { value: "recentes", label: "Mais recentes" },
+                  { value: "a-z", label: "Modelo: A → Z" },
+                ]}
+              />
+              <SelectDropdown
+                className="select-paginacao"
+                ariaLabel="Itens por página"
+                value={String(itensPorPagina)}
+                onChange={(value) => alterarFiltro("itensPorPagina", value)}
+                options={QUANTIDADES_POR_PAGINA.map((quantidade) => ({ value: String(quantidade), label: `${quantidade} por página` }))}
+              />
             </div>
 
             <div className="resultados-topo">
@@ -493,6 +511,7 @@ function BuscadorConteudo() {
                         {oferta.cor && <span className="tag">{oferta.cor}</span>}
                         {oferta.verificado && <span className="tag verificado">Verificado</span>}
                       </div>
+                      {oferta.fornecedor && <span className="oferta-loja">{oferta.fornecedor}</span>}
                       <span className="oferta-local">{oferta.cidade} · {oferta.data_atualizacao}</span>
                     </div>
                     <div className="oferta-preco">{oferta.valor}</div>

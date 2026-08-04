@@ -49,6 +49,7 @@ model OfertaCache {
   dataAtualizacao String
   createdAtOrigem DateTime?
   verificado      Boolean   @default(false)
+  fornecedor      String?
   atualizadoEm    DateTime  @default(now())
 
   @@index([categoria])

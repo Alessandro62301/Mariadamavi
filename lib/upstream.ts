@@ -44,12 +44,23 @@ const margemSeguranca = 60_000; // renova 1 min antes de expirar
 
 let cachedAccessToken: string | null = null;
 let cachedExpiresAt = 0; // epoch ms
+let accessTokenEmCarregamento: Promise<string> | null = null;
 
 async function getAccessToken(): Promise<string> {
   if (cachedAccessToken && Date.now() < cachedExpiresAt - margemSeguranca) {
     return cachedAccessToken;
   }
+  if (accessTokenEmCarregamento) return accessTokenEmCarregamento;
 
+  accessTokenEmCarregamento = carregarAccessToken();
+  try {
+    return await accessTokenEmCarregamento;
+  } finally {
+    accessTokenEmCarregamento = null;
+  }
+}
+
+async function carregarAccessToken(): Promise<string> {
   const sessao = await prisma.apiSession.findUnique({ where: { provider: PROVIDER } });
 
   if (sessao?.accessToken && sessao.expiresAt && Date.now() < sessao.expiresAt.getTime() - margemSeguranca) {
@@ -220,9 +231,21 @@ async function buscarStatusUpstream(): Promise<Status> {
   return data;
 }
 
+async function buscarContatosUpstream(): Promise<Contato[]> {
+  if (!USANDO_UPSTREAM_REAL) return [];
+  const headers = await authHeaders();
+  const { data } = await supabase.post<Contato[]>("/rest/v1/rpc/ofertas_contatos", {}, { headers });
+  return data;
+}
+
 export async function atualizarCacheOfertas() {
-  const [ofertas, status] = await Promise.all([buscarTodasOfertasUpstream(), buscarStatusUpstream()]);
-  await salvarCacheOfertas(ofertas, { ...status, total: ofertas.length });
+  const contatosPromise = buscarContatosUpstream().catch((error) => {
+    console.error("[cache/fornecedores]", error instanceof Error ? error.message : "Falha ao carregar fornecedores");
+    return [];
+  });
+  const [ofertas, status, contatos] = await Promise.all([buscarTodasOfertasUpstream(), buscarStatusUpstream(), contatosPromise]);
+  const fornecedores = new Map(contatos.map((contato) => [contato.id, contato.fornecedor]));
+  await salvarCacheOfertas(ofertas, { ...status, total: ofertas.length }, fornecedores);
   cacheFiltros = null;
   return { total: ofertas.length, atualizadoEm: new Date().toISOString() };
 }
