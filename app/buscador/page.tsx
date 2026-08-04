@@ -84,6 +84,8 @@ function BuscadorConteudo() {
   const [contatoCarregando, setContatoCarregando] = useState<number | null>(null);
   const [modelosExpandidos, setModelosExpandidos] = useState(false);
   const [visualizacao, setVisualizacao] = useState<Visualizacao>("lista");
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [buscaTexto, setBuscaTexto] = useState(q);
 
   const alterarFiltro = useCallback((nome: string, valor: string, opcoes?: { manterPagina?: boolean }) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -93,7 +95,7 @@ function BuscadorConteudo() {
     if (!opcoes?.manterPagina) params.delete("page");
     const destino = params.size ? `${pathname}?${params.toString()}` : pathname;
     router.replace(destino, { scroll: false });
-  }, [pathname, router]);
+  }, [pathname, router, searchParams]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -116,8 +118,9 @@ function BuscadorConteudo() {
         ]);
         setStatus(novoStatus);
         setTodasOfertas(catalogo.items);
-        if (!searchParams.has("categoria")) {
-          const params = new URLSearchParams(searchParams.toString());
+        const paramsAtuais = new URLSearchParams(window.location.search);
+        if (!paramsAtuais.has("categoria")) {
+          const params = new URLSearchParams(paramsAtuais);
           params.set("categoria", configuracoes.preferencias.categoriaPadrao);
           params.set("itensPorPagina", String(configuracoes.preferencias.itensPorPagina));
           router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -135,12 +138,19 @@ function BuscadorConteudo() {
       });
 
     return () => controller.abort();
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 
   useEffect(() => {
     const preferencia = window.localStorage.getItem("buscador-visualizacao");
     if (preferencia === "lista" || preferencia === "grade") setVisualizacao(preferencia);
   }, []);
+
+  useEffect(() => {
+    if (!filtrosAbertos) return;
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = overflowAnterior; };
+  }, [filtrosAbertos]);
 
   const filtros = useMemo<FiltrosDisponiveis>(() => {
     const categorias = CATEGORIAS.map((valor) => ({
@@ -168,15 +178,16 @@ function BuscadorConteudo() {
   }, [todasOfertas]);
 
   const resultado = useMemo<OfertasResponse>(() => {
+    const termoBusca = buscaTexto.trim().toLocaleLowerCase("pt-BR");
     let items = todasOfertas.filter((oferta) => {
-      if (categoria && oferta.categoria !== categoria) return false;
+      if (!termoBusca && categoria && oferta.categoria !== categoria) return false;
       if (modelo && extrairModeloBase(oferta.modelo) !== modelo) return false;
       if (condicao && oferta.condicao !== condicao) return false;
       if (cor && oferta.cor !== cor) return false;
       if (armazenamento && extrairArmazenamento(oferta.modelo, oferta.variante) !== armazenamento) return false;
       if (estado && extrairEstado(oferta.cidade) !== estado) return false;
       if (cidade && oferta.cidade !== cidade) return false;
-      if (q && !oferta.modelo.toLocaleLowerCase("pt-BR").includes(q.toLocaleLowerCase("pt-BR"))) return false;
+      if (termoBusca && !oferta.modelo.toLocaleLowerCase("pt-BR").includes(termoBusca)) return false;
       return true;
     });
     items = [...items].sort((a, b) => {
@@ -188,7 +199,7 @@ function BuscadorConteudo() {
     const total = items.length;
     const inicio = (page - 1) * itensPorPagina;
     return { items: items.slice(inicio, inicio + itensPorPagina), total, page, pageSize: itensPorPagina };
-  }, [armazenamento, categoria, cidade, condicao, cor, estado, itensPorPagina, modelo, page, q, sort, todasOfertas]);
+  }, [armazenamento, buscaTexto, categoria, cidade, condicao, cor, estado, itensPorPagina, modelo, page, sort, todasOfertas]);
 
   const modelosDaCategoria = useMemo(() => {
     if (!categoria) return [];
@@ -201,6 +212,7 @@ function BuscadorConteudo() {
 
   const modelosVisiveis = modelosExpandidos ? modelosDaCategoria : modelosDaCategoria.slice(0, LIMITE_MODELOS);
   const totalPaginas = Math.max(1, Math.ceil(resultado.total / resultado.pageSize));
+  const totalFiltrosAtivos = [categoria, modelo, condicao, cor, armazenamento, estado, cidade].filter(Boolean).length;
 
   function mudarCategoria(valor: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -229,6 +241,11 @@ function BuscadorConteudo() {
   function mudarVisualizacao(novaVisualizacao: Visualizacao) {
     setVisualizacao(novaVisualizacao);
     window.localStorage.setItem("buscador-visualizacao", novaVisualizacao);
+  }
+
+  function confirmarBusca() {
+    if (buscaTexto === q) return;
+    alterarFiltro("q", buscaTexto.trim());
   }
 
   async function abrirWhatsApp(oferta: Oferta) {
@@ -275,22 +292,34 @@ function BuscadorConteudo() {
 
       <main className="busca-body">
         <div className="catalogo-layout">
-          <aside className="painel-filtros" aria-label="Filtros do catálogo">
+          <button className={`filtro-overlay ${filtrosAbertos ? "aberto" : ""}`} type="button" aria-label="Fechar filtros" onClick={() => setFiltrosAbertos(false)} />
+          <aside className={`painel-filtros ${filtrosAbertos ? "aberto" : ""}`} aria-label="Filtros do catálogo">
             <div className="painel-filtros__topo">
               <h2>Filtros</h2>
-              <button type="button" onClick={limparFiltros}>Limpar</button>
+              <div className="painel-filtros__acoes">
+                <button type="button" onClick={limparFiltros}>Limpar</button>
+                <button className="fechar-filtros" type="button" aria-label="Fechar filtros" onClick={() => setFiltrosAbertos(false)}>×</button>
+              </div>
             </div>
 
             {carregando && <p className="filtros-loading">Carregando opções...</p>}
 
             <div className="grupo-filtro">
-              <label htmlFor="filtro-categoria">Categoria</label>
-              <select id="filtro-categoria" value={categoria} onChange={(event) => mudarCategoria(event.target.value)} disabled={!filtros}>
-                <option value="">Todas as categorias</option>
-                {filtros?.categorias.map((item) => (
-                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+              <span className="grupo-filtro__rotulo">Categoria</span>
+              <div className="categorias-checklist">
+                {filtros.categorias.map((item) => (
+                  <label className={categoria === item.valor ? "ativo" : ""} key={item.valor}>
+                    <input
+                      type="checkbox"
+                      checked={categoria === item.valor}
+                      onChange={() => mudarCategoria(categoria === item.valor ? "" : item.valor)}
+                    />
+                    <span className="categoria-check" aria-hidden="true" />
+                    <span className="categoria-nome">{item.valor}</span>
+                    <span className="categoria-total">{item.total.toLocaleString("pt-BR")}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div className="grupo-filtro">
@@ -371,17 +400,38 @@ function BuscadorConteudo() {
                 ))}
               </select>
             </div>
+            <div className="painel-filtros__rodape">
+              <button type="button" onClick={() => setFiltrosAbertos(false)}>Ver {resultado.total.toLocaleString("pt-BR")} produtos</button>
+            </div>
           </aside>
 
           <section className="catalogo-resultados" aria-labelledby="titulo-resultados">
             <div className="barra-catalogo filtros">
+              <button
+                className="abrir-filtros"
+                type="button"
+                aria-expanded={filtrosAbertos}
+                onClick={() => setFiltrosAbertos(true)}
+              >
+                <span aria-hidden="true">☰</span> Filtros
+                {totalFiltrosAtivos > 0 && <b>{totalFiltrosAtivos}</b>}
+              </button>
               <input
                 className="busca-texto"
                 type="search"
                 aria-label="Buscar por modelo"
                 placeholder="Buscar por modelo (ex.: iPhone 13)"
-                value={q}
-                onChange={(event) => alterarFiltro("q", event.target.value)}
+                value={buscaTexto}
+                onChange={(event) => {
+                  setBuscaTexto(event.target.value);
+                  if (!event.target.value) alterarFiltro("q", "");
+                }}
+                onBlur={confirmarBusca}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    confirmarBusca();
+                  }
+                }}
               />
               <select aria-label="Ordenar ofertas" value={sort} onChange={(event) => alterarFiltro("sort", event.target.value)}>
                 <option value="recentes">Mais recentes</option>
