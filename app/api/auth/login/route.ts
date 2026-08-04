@@ -1,24 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
-  const { usuario, senha } = await req.json().catch(() => ({ usuario: "", senha: "" }));
+  const body = await req.json().catch(() => ({ usuario: "", senha: "" }));
+  const usuario = String(body.usuario ?? "").trim();
+  const senha = String(body.senha ?? "").trim();
 
-  const usuarioEsperado = process.env.BUSCADOR_USER;
-  const senhaEsperada = process.env.BUSCADOR_PASS;
-
-  if (!usuarioEsperado || !senhaEsperada) {
-    return NextResponse.json(
-      { error: "BUSCADOR_USER/BUSCADOR_PASS não configurados no servidor." },
-      { status: 500 }
-    );
+  if (!usuario || !senha) {
+    return NextResponse.json({ error: "Usuário e senha são obrigatórios." }, { status: 400 });
   }
 
-  if (usuario !== usuarioEsperado || senha !== senhaEsperada) {
+  const user = await prisma.user.findUnique({ where: { email: usuario } });
+  if (!user) {
     return NextResponse.json({ error: "Usuário ou senha inválidos." }, { status: 401 });
   }
 
-  const token = await createSessionToken(usuario);
+  const senhaOk = await bcrypt.compare(senha, user.password);
+  if (!senhaOk) {
+    return NextResponse.json({ error: "Usuário ou senha inválidos." }, { status: 401 });
+  }
+
+  const token = await createSessionToken(user.email);
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,

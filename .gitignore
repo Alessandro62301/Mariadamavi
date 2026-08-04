@@ -11,6 +11,7 @@
 # misc
 .DS_Store
 *.pem
+.idea
 
 # debug
 npm-debug.log*
@@ -27,3 +28,5 @@ next-env.d.ts
 
 # arquivo antigo, mantido só de referência local
 /_archive-html-estatico
+example/token.md
+example/apikey.md

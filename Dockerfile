@@ -1,27 +1,20 @@
-# ---- deps ----
-FROM node:20-alpine AS deps
+FROM node:20-slim
+
+# Prisma precisa de openssl pra gerar/rodar o client no Debian slim.
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+
 COPY package.json package-lock.json ./
+COPY prisma ./prisma
 RUN npm ci
 
-# ---- builder ----
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# ---- runner ----
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
-CMD ["node", "server.js"]
+
+# Aplica as migrations, garante o usuário inicial (BUSCADOR_USER/BUSCADOR_PASS)
+# e só então sobe o servidor.
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run start"]

@@ -1,8 +1,29 @@
 services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   web:
     build: .
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
     labels:
       - traefik.enable=true
       - traefik.http.services.mavi.loadbalancer.server.port=3000
@@ -10,3 +31,6 @@ services:
       - traefik.http.routers.mavi.entrypoints=websecure
       - traefik.http.routers.mavi.tls.certresolver=letsencrypt
     restart: unless-stopped
+
+volumes:
+  mysql_data:

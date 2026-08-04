@@ -1,0 +1,30 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  nome      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Guarda a sessão da API upstream (Supabase do Conecta Lojista/BuskaPhone).
+// O refresh_token gira a cada uso — sem persistir, o token do .env vira
+// inválido depois do primeiro uso e quebra a integração num restart.
+model ApiSession {
+  id           Int       @id @default(autoincrement())
+  provider     String    @unique
+  accessToken  String?   @db.Text
+  refreshToken String    @db.Text
+  expiresAt    DateTime?
+  updatedAt    DateTime  @updatedAt
+}
