@@ -263,21 +263,33 @@ export async function buscarFiltrosDisponiveis(): Promise<FiltrosDisponiveis> {
     let linhas: LinhaFiltro[];
 
     if (USANDO_UPSTREAM_REAL) {
-      linhas = [];
       const headers = await authHeaders();
+      const paramsBase = {
+        select: "categoria,condicao,cor,cidade,modelo,variante",
+        limit: String(TAMANHO_LOTE_FILTROS),
+      };
+      const primeiraResposta = await supabase.get<LinhaFiltro[]>("/rest/v1/ofertas_publicas", {
+        params: { ...paramsBase, offset: "0" },
+        headers: { ...headers, Prefer: "count=exact" },
+      });
+      linhas = primeiraResposta.data;
 
-      for (let offset = 0; ; offset += TAMANHO_LOTE_FILTROS) {
-        const { data } = await supabase.get<LinhaFiltro[]>("/rest/v1/ofertas_publicas", {
-          params: {
-            select: "categoria,condicao,cor,cidade,modelo,variante",
-            offset: String(offset),
-            limit: String(TAMANHO_LOTE_FILTROS),
-          },
+      const contentRange = primeiraResposta.headers["content-range"] as string | undefined;
+      const total = contentRange ? Number(contentRange.split("/")[1]) : linhas.length;
+      const offsets = Array.from(
+        { length: Math.max(0, Math.ceil(total / TAMANHO_LOTE_FILTROS) - 1) },
+        (_, indice) => (indice + 1) * TAMANHO_LOTE_FILTROS,
+      );
+
+      // Depois de conhecer o total, os lotes independentes são buscados juntos
+      // para a rota não exceder o tempo de execução da hospedagem.
+      const respostasRestantes = await Promise.all(
+        offsets.map((offset) => supabase.get<LinhaFiltro[]>("/rest/v1/ofertas_publicas", {
+          params: { ...paramsBase, offset: String(offset) },
           headers,
-        });
-        linhas.push(...data);
-        if (data.length < TAMANHO_LOTE_FILTROS) break;
-      }
+        })),
+      );
+      for (const resposta of respostasRestantes) linhas.push(...resposta.data);
     } else {
       linhas = MOCK_OFERTAS;
     }

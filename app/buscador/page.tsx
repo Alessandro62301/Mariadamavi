@@ -30,7 +30,7 @@ function BuscadorConteudo() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const categoria = searchParams.get("categoria") ?? "";
+  const categoria = searchParams.get("categoria") ?? "iphone";
   const modelo = searchParams.get("modelo") ?? "";
   const condicao = searchParams.get("condicao") ?? "";
   const cor = searchParams.get("cor") ?? "";
@@ -96,8 +96,16 @@ function BuscadorConteudo() {
   }, []);
 
   useEffect(() => {
+    if (searchParams.has("categoria")) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("categoria", "iphone");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams(searchParams.toString());
+    if (!params.has("categoria")) params.set("categoria", "iphone");
     params.set("sort", sort);
     params.set("page", String(page));
     params.set("itensPorPagina", String(itensPorPagina));
@@ -143,7 +151,7 @@ function BuscadorConteudo() {
   function mudarCategoria(valor: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (valor) params.set("categoria", valor);
-    else params.delete("categoria");
+    else params.set("categoria", "");
     params.delete("modelo");
     params.delete("page");
     router.replace(params.size ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
@@ -160,7 +168,7 @@ function BuscadorConteudo() {
   }
 
   function limparFiltros() {
-    router.replace(pathname, { scroll: false });
+    router.replace(`${pathname}?categoria=iphone`, { scroll: false });
     setModelosExpandidos(false);
   }
 
