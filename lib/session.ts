@@ -56,26 +56,30 @@ export async function createSessionToken(usuario: string): Promise<string> {
 }
 
 export async function verifySessionToken(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
+  return (await lerSessionToken(token)) !== null;
+}
+
+/** Verifica o token e devolve o e-mail do usuário logado (ou null se inválido/expirado). */
+export async function lerSessionToken(token: string | undefined): Promise<string | null> {
+  if (!token) return null;
   const dotIndex = token.lastIndexOf(".");
-  if (dotIndex === -1) return false;
+  if (dotIndex === -1) return null;
 
   const payloadB64 = token.slice(0, dotIndex);
   const sig = token.slice(dotIndex + 1);
 
   const expectedSig = await hmac(payloadB64);
-  if (sig !== expectedSig) return false;
+  if (sig !== expectedSig) return null;
 
   try {
     const payload = base64UrlToString(payloadB64);
-    const [, expiresAtStr] = payload.split("|");
+    const [usuario, expiresAtStr] = payload.split("|");
     const expiresAt = Number(expiresAtStr);
-    if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return false;
+    if (!usuario || !Number.isFinite(expiresAt) || Date.now() > expiresAt) return null;
+    return usuario;
   } catch {
-    return false;
+    return null;
   }
-
-  return true;
 }
 
 export const SESSION_COOKIE = COOKIE_NAME;

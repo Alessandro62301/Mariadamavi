@@ -1,28 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { buscarOfertas } from "@/lib/upstream";
-import type { OfertasQuery } from "@/lib/types";
+import { NextResponse } from "next/server";
+import { listarOfertasDoCache } from "@/lib/cache-ofertas";
+import { atualizarCacheOfertas } from "@/lib/upstream";
 
-export async function GET(req: NextRequest) {
-  const sp = req.nextUrl.searchParams;
-
-  const query: OfertasQuery = {
-    categoria: sp.get("categoria") || undefined,
-    condicao: sp.get("condicao") || undefined,
-    cor: sp.get("cor") || undefined,
-    estado: sp.get("estado") || undefined,
-    cidade: sp.get("cidade") || undefined,
-    modelo: sp.get("modelo") || undefined,
-    armazenamento: sp.get("armazenamento") || undefined,
-    q: sp.get("q") || undefined,
-    sort: (sp.get("sort") as OfertasQuery["sort"]) || "recentes",
-    page: Number(sp.get("page")) || 1,
-    itensPorPagina: Number(sp.get("itensPorPagina") || sp.get("pageSize")) || 25,
-  };
-
+export async function GET() {
   try {
-    const resultado = await buscarOfertas(query);
-    return NextResponse.json(resultado);
-  } catch {
-    return NextResponse.json({ error: "Falha ao buscar ofertas." }, { status: 502 });
+    let items = await listarOfertasDoCache();
+    if (items.length === 0) {
+      await atualizarCacheOfertas();
+      items = await listarOfertasDoCache();
+    }
+
+    const catalogo = items.map((oferta) => ({
+      ...oferta,
+      foto_url: `/api/buscador/ofertas/${oferta.id}/imagem`,
+    }));
+    return NextResponse.json({ items: catalogo, total: catalogo.length, page: 1, pageSize: catalogo.length });
+  } catch (error) {
+    console.error("[buscador/ofertas]", error instanceof Error ? error.message : "Erro desconhecido");
+    return NextResponse.json({ error: "Falha ao carregar o catálogo." }, { status: 502 });
   }
 }

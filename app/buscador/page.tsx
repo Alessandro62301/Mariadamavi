@@ -4,11 +4,46 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FiltrosDisponiveis, Oferta, OfertasResponse, Status } from "@/lib/types";
 import { GridIcon, ListIcon, WhatsAppIcon } from "@/components/icons";
+import Link from "next/link";
 
 type Visualizacao = "lista" | "grade";
 
 const QUANTIDADES_POR_PAGINA = [10, 25, 50, 100];
 const LIMITE_MODELOS = 7;
+const CATEGORIAS = ["iphone", "ipad", "macbook", "apple watch"];
+
+function extrairArmazenamento(modelo: string, variante?: string | null) {
+  const texto = `${modelo} ${variante ?? ""}`;
+  const combinada = texto.match(/\b\d+\s*\/\s*(\d+(?:[.,]\d+)?)\s*(GB|TB)\b/i);
+  const capacidade = combinada ?? texto.match(/\b(\d+(?:[.,]\d+)?)\s*(GB|TB)\b/i);
+  return capacidade ? `${capacidade[1].replace(",", ".")}${capacidade[2].toUpperCase()}` : "";
+}
+
+function extrairModeloBase(modelo: string) {
+  return modelo
+    .replace(/\b\d+\s*\/\s*\d+(?:[.,]\d+)?\s*(GB|TB)\b/gi, " ")
+    .replace(/\b\d+(?:[.,]\d+)?\s*(GB|TB)\b/gi, " ")
+    .replace(/[\s\-\/|]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extrairEstado(cidade: string) {
+  return cidade.match(/,\s*([A-Z]{2})\s*$/i)?.[1].toUpperCase() ?? "";
+}
+
+function opcoesComContagem(valores: string[]) {
+  const contagens = new Map<string, { valor: string; total: number }>();
+  for (const valorOriginal of valores) {
+    const valor = valorOriginal?.trim();
+    if (!valor) continue;
+    const chave = valor.toLocaleLowerCase("pt-BR");
+    const atual = contagens.get(chave);
+    if (atual) atual.total += 1;
+    else contagens.set(chave, { valor, total: 1 });
+  }
+  return [...contagens.values()].sort((a, b) => a.valor.localeCompare(b.valor, "pt-BR", { numeric: true }));
+}
 
 function numeroPositivo(valor: string | null, padrao: number) {
   const numero = Number(valor);
@@ -43,10 +78,8 @@ function BuscadorConteudo() {
   const itensPorPagina = numeroPositivo(searchParams.get("itensPorPagina"), 25);
 
   const [status, setStatus] = useState<Status | null>(null);
-  const [filtros, setFiltros] = useState<FiltrosDisponiveis | null>(null);
-  const [resultado, setResultado] = useState<OfertasResponse | null>(null);
+  const [todasOfertas, setTodasOfertas] = useState<Oferta[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [carregandoFiltros, setCarregandoFiltros] = useState(true);
   const [erro, setErro] = useState("");
   const [contatoCarregando, setContatoCarregando] = useState<number | null>(null);
   const [modelosExpandidos, setModelosExpandidos] = useState(false);
@@ -60,93 +93,114 @@ function BuscadorConteudo() {
     if (!opcoes?.manterPagina) params.delete("page");
     const destino = params.size ? `${pathname}?${params.toString()}` : pathname;
     router.replace(destino, { scroll: false });
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 
   useEffect(() => {
     const controller = new AbortController();
 
     Promise.all([
       fetch("/api/buscador/status", { signal: controller.signal }),
-      fetch("/api/buscador/filtros", { signal: controller.signal }),
+      fetch("/api/buscador/ofertas", { signal: controller.signal }),
+      fetch("/api/buscador/configuracoes", { signal: controller.signal }),
     ])
-      .then(async ([statusResponse, filtrosResponse]) => {
-        if (statusResponse.status === 401 || filtrosResponse.status === 401) {
+      .then(async ([statusResponse, ofertasResponse, configuracoesResponse]) => {
+        if (statusResponse.status === 401 || ofertasResponse.status === 401 || configuracoesResponse.status === 401) {
           router.push("/buscador/login");
           return;
         }
-        if (!statusResponse.ok || !filtrosResponse.ok) throw new Error("Falha ao carregar o catálogo.");
-        const [novoStatus, novosFiltros] = await Promise.all([statusResponse.json(), filtrosResponse.json()]);
+        if (!statusResponse.ok || !ofertasResponse.ok || !configuracoesResponse.ok) throw new Error("Falha ao carregar o catálogo.");
+        const [novoStatus, catalogo, configuracoes] = await Promise.all([
+          statusResponse.json(),
+          ofertasResponse.json() as Promise<OfertasResponse>,
+          configuracoesResponse.json(),
+        ]);
         setStatus(novoStatus);
-        setFiltros(novosFiltros);
-      })
-      .catch((error) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setErro("Não foi possível carregar todos os filtros.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setCarregandoFiltros(false);
-      });
-
-    return () => controller.abort();
-  }, [router]);
-
-  useEffect(() => {
-    const preferencia = window.localStorage.getItem("buscador-visualizacao");
-    if (preferencia === "lista" || preferencia === "grade") setVisualizacao(preferencia);
-  }, []);
-
-  useEffect(() => {
-    if (searchParams.has("categoria")) return;
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("categoria", "iphone");
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const params = new URLSearchParams(searchParams.toString());
-    if (!params.has("categoria")) params.set("categoria", "iphone");
-    params.set("sort", sort);
-    params.set("page", String(page));
-    params.set("itensPorPagina", String(itensPorPagina));
-
-    setCarregando(true);
-    setErro("");
-    fetch(`/api/buscador/ofertas?${params.toString()}`, { signal: controller.signal })
-      .then(async (response) => {
-        if (response.status === 401) {
-          router.push("/buscador/login");
-          return null;
+        setTodasOfertas(catalogo.items);
+        if (!searchParams.has("categoria")) {
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("categoria", configuracoes.preferencias.categoriaPadrao);
+          params.set("itensPorPagina", String(configuracoes.preferencias.itensPorPagina));
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
         }
-        if (!response.ok) throw new Error("Falha ao buscar ofertas.");
-        return response.json() as Promise<OfertasResponse>;
-      })
-      .then((data) => {
-        if (data) setResultado(data);
+        if (!window.localStorage.getItem("buscador-visualizacao")) {
+          setVisualizacao(configuracoes.preferencias.visualizacaoPadrao);
+        }
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setErro("Não foi possível buscar as ofertas. Tente novamente.");
+        setErro("Não foi possível carregar o catálogo.");
       })
       .finally(() => {
         if (!controller.signal.aborted) setCarregando(false);
       });
 
     return () => controller.abort();
-  }, [itensPorPagina, page, router, searchParams, sort]);
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const preferencia = window.localStorage.getItem("buscador-visualizacao");
+    if (preferencia === "lista" || preferencia === "grade") setVisualizacao(preferencia);
+  }, []);
+
+  const filtros = useMemo<FiltrosDisponiveis>(() => {
+    const categorias = CATEGORIAS.map((valor) => ({
+      valor,
+      total: todasOfertas.filter((oferta) => oferta.categoria === valor).length,
+    }));
+    const modelos = CATEGORIAS.flatMap((categoriaAtual) =>
+      opcoesComContagem(todasOfertas.filter((oferta) => oferta.categoria === categoriaAtual).map((oferta) => extrairModeloBase(oferta.modelo)))
+        .map((item) => ({ ...item, categoria: categoriaAtual })),
+    );
+    const cidades = opcoesComContagem(todasOfertas.map((oferta) => oferta.cidade)).map((item) => ({
+      ...item,
+      estado: extrairEstado(item.valor),
+    }));
+    return {
+      categorias,
+      modelos,
+      condicoes: opcoesComContagem(todasOfertas.map((oferta) => oferta.condicao)),
+      cores: opcoesComContagem(todasOfertas.map((oferta) => oferta.cor)),
+      armazenamentos: opcoesComContagem(todasOfertas.map((oferta) => extrairArmazenamento(oferta.modelo, oferta.variante))),
+      estados: opcoesComContagem(todasOfertas.map((oferta) => extrairEstado(oferta.cidade))),
+      cidades,
+      geradoEm: new Date().toISOString(),
+    };
+  }, [todasOfertas]);
+
+  const resultado = useMemo<OfertasResponse>(() => {
+    let items = todasOfertas.filter((oferta) => {
+      if (categoria && oferta.categoria !== categoria) return false;
+      if (modelo && extrairModeloBase(oferta.modelo) !== modelo) return false;
+      if (condicao && oferta.condicao !== condicao) return false;
+      if (cor && oferta.cor !== cor) return false;
+      if (armazenamento && extrairArmazenamento(oferta.modelo, oferta.variante) !== armazenamento) return false;
+      if (estado && extrairEstado(oferta.cidade) !== estado) return false;
+      if (cidade && oferta.cidade !== cidade) return false;
+      if (q && !oferta.modelo.toLocaleLowerCase("pt-BR").includes(q.toLocaleLowerCase("pt-BR"))) return false;
+      return true;
+    });
+    items = [...items].sort((a, b) => {
+      if (sort === "menor-preco") return a.valor_num - b.valor_num;
+      if (sort === "maior-preco") return b.valor_num - a.valor_num;
+      if (sort === "a-z") return a.modelo.localeCompare(b.modelo, "pt-BR", { numeric: true });
+      return b.id - a.id;
+    });
+    const total = items.length;
+    const inicio = (page - 1) * itensPorPagina;
+    return { items: items.slice(inicio, inicio + itensPorPagina), total, page, pageSize: itensPorPagina };
+  }, [armazenamento, categoria, cidade, condicao, cor, estado, itensPorPagina, modelo, page, q, sort, todasOfertas]);
 
   const modelosDaCategoria = useMemo(() => {
-    if (!filtros || !categoria) return [];
+    if (!categoria) return [];
     return filtros.modelos.filter((item) => item.categoria === categoria);
-  }, [categoria, filtros]);
+  }, [categoria, filtros.modelos]);
 
   const cidadesDoEstado = useMemo(() => {
-    if (!filtros) return [];
     return filtros.cidades.filter((item) => !estado || item.estado === estado);
-  }, [estado, filtros]);
+  }, [estado, filtros.cidades]);
 
   const modelosVisiveis = modelosExpandidos ? modelosDaCategoria : modelosDaCategoria.slice(0, LIMITE_MODELOS);
-  const totalPaginas = resultado ? Math.max(1, Math.ceil(resultado.total / resultado.pageSize)) : 1;
+  const totalPaginas = Math.max(1, Math.ceil(resultado.total / resultado.pageSize));
 
   function mudarCategoria(valor: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -213,7 +267,10 @@ function BuscadorConteudo() {
             <span><b>{status.cidades.toLocaleString("pt-BR")}</b> cidades</span>
           </div>
         )}
-        <button type="button" className="logout" onClick={sair}>Sair</button>
+        <div className="busca-header__acoes">
+          <Link className="config-link" href="/buscador/configuracoes">Configurações</Link>
+          <button type="button" className="logout" onClick={sair}>Sair</button>
+        </div>
       </header>
 
       <main className="busca-body">
@@ -224,7 +281,7 @@ function BuscadorConteudo() {
               <button type="button" onClick={limparFiltros}>Limpar</button>
             </div>
 
-            {carregandoFiltros && <p className="filtros-loading">Carregando opções...</p>}
+            {carregando && <p className="filtros-loading">Carregando opções...</p>}
 
             <div className="grupo-filtro">
               <label htmlFor="filtro-categoria">Categoria</label>
@@ -239,7 +296,7 @@ function BuscadorConteudo() {
             <div className="grupo-filtro">
               <span className="grupo-filtro__rotulo">Modelo</span>
               {!categoria && <p className="grupo-filtro__ajuda">Selecione uma categoria para ver os modelos.</p>}
-              {categoria && modelosDaCategoria.length === 0 && !carregandoFiltros && (
+              {categoria && modelosDaCategoria.length === 0 && !carregando && (
                 <p className="grupo-filtro__ajuda">Nenhum modelo disponível nesta categoria.</p>
               )}
               {modelosVisiveis.length > 0 && (

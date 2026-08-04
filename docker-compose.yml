@@ -32,5 +32,23 @@ services:
       - traefik.http.routers.mavi.tls.certresolver=letsencrypt
     restart: unless-stopped
 
+  cron:
+    image: curlimages/curl:8.12.1
+    env_file:
+      - .env
+    depends_on:
+      - web
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        if [ -z "$$CRON_SECRET" ]; then echo "CRON_SECRET não configurado; job horário aguardando reinício."; sleep infinity; fi;
+        until curl -fsS -X POST -H "Authorization: Bearer $$CRON_SECRET" http://web:3000/api/cron/alertas;
+        do sleep 30; done;
+        while sleep 3600;
+        do curl -fsS -X POST -H "Authorization: Bearer $$CRON_SECRET" http://web:3000/api/cron/alertas || true;
+        done
+    restart: unless-stopped
+
 volumes:
   mysql_data:

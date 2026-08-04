@@ -12,6 +12,13 @@ import type {
 } from "./types";
 import { MOCK_OFERTAS, mockContatoPorId } from "./mock-ofertas";
 import { prisma } from "./prisma";
+import {
+  buscarOfertasNoCache,
+  buscarStatusNoCache,
+  cacheOfertasFresco,
+  listarOfertasDoCache,
+  salvarCacheOfertas,
+} from "./cache-ofertas";
 
 /**
  * Cliente da API upstream (Conecta Lojista/BuskaPhone), que roda em cima do
@@ -179,12 +186,55 @@ function montarFiltros(linhas: LinhaFiltro[]): FiltrosDisponiveis {
   };
 }
 
+async function buscarTodasOfertasUpstream(): Promise<Oferta[]> {
+  if (!USANDO_UPSTREAM_REAL) return [...MOCK_OFERTAS];
+
+  const headers = await authHeaders();
+  const paramsBase = { select: "*", order: "id.asc", limit: String(TAMANHO_LOTE_FILTROS) };
+  const primeiraResposta = await supabase.get<Oferta[]>("/rest/v1/ofertas_publicas", {
+    params: { ...paramsBase, offset: "0" },
+    headers: { ...headers, Prefer: "count=exact" },
+  });
+  const ofertas = [...primeiraResposta.data];
+  const contentRange = primeiraResposta.headers["content-range"] as string | undefined;
+  const total = contentRange ? Number(contentRange.split("/")[1]) : ofertas.length;
+  const offsets = Array.from(
+    { length: Math.max(0, Math.ceil(total / TAMANHO_LOTE_FILTROS) - 1) },
+    (_, indice) => (indice + 1) * TAMANHO_LOTE_FILTROS,
+  );
+  const respostas = await Promise.all(offsets.map((offset) => supabase.get<Oferta[]>("/rest/v1/ofertas_publicas", {
+    params: { ...paramsBase, offset: String(offset) },
+    headers,
+  })));
+  for (const resposta of respostas) ofertas.push(...resposta.data);
+  return ofertas;
+}
+
+async function buscarStatusUpstream(): Promise<Status> {
+  if (!USANDO_UPSTREAM_REAL) {
+    const cidades = new Set(MOCK_OFERTAS.map((oferta) => oferta.cidade));
+    return { total: MOCK_OFERTAS.length, cidades: cidades.size, fornecedores: 83 };
+  }
+  const headers = await authHeaders();
+  const { data } = await supabase.post<Status>("/rest/v1/rpc/ofertas_stats", {}, { headers });
+  return data;
+}
+
+export async function atualizarCacheOfertas() {
+  const [ofertas, status] = await Promise.all([buscarTodasOfertasUpstream(), buscarStatusUpstream()]);
+  await salvarCacheOfertas(ofertas, { ...status, total: ofertas.length });
+  cacheFiltros = null;
+  return { total: ofertas.length, atualizadoEm: new Date().toISOString() };
+}
+
 export async function buscarOfertas(query: OfertasQuery): Promise<OfertasResponse> {
   const page = query.page && query.page > 0 ? Math.floor(query.page) : 1;
   const tamanhoSolicitado = query.itensPorPagina ?? query.pageSize ?? 25;
   const pageSize = TAMANHOS_PAGINA.has(tamanhoSolicitado) ? tamanhoSolicitado : 25;
 
   if (USANDO_UPSTREAM_REAL) {
+    if (await cacheOfertasFresco()) return buscarOfertasNoCache(query);
+
     const offset = (page - 1) * pageSize;
 
     const params: Record<string, string> = { select: "*", offset: String(offset), limit: String(pageSize) };
@@ -262,10 +312,13 @@ export async function buscarFiltrosDisponiveis(): Promise<FiltrosDisponiveis> {
   filtrosEmCarregamento = (async () => {
     let linhas: LinhaFiltro[];
 
-    if (USANDO_UPSTREAM_REAL) {
+    if (USANDO_UPSTREAM_REAL && await cacheOfertasFresco()) {
+      linhas = await listarOfertasDoCache();
+    } else if (USANDO_UPSTREAM_REAL) {
       const headers = await authHeaders();
       const paramsBase = {
         select: "categoria,condicao,cor,cidade,modelo,variante",
+        order: "id.asc",
         limit: String(TAMANHO_LOTE_FILTROS),
       };
       const primeiraResposta = await supabase.get<LinhaFiltro[]>("/rest/v1/ofertas_publicas", {
@@ -319,10 +372,11 @@ export async function buscarContato(id: number): Promise<Contato | null> {
 
 export async function buscarStatus(): Promise<Status> {
   if (USANDO_UPSTREAM_REAL) {
-    const headers = await authHeaders();
-    const { data } = await supabase.post<Status>("/rest/v1/rpc/ofertas_stats", {}, { headers });
-    return data;
+    if (await cacheOfertasFresco()) {
+      const status = await buscarStatusNoCache();
+      if (status) return status;
+    }
+    return buscarStatusUpstream();
   }
-  const cidades = new Set(MOCK_OFERTAS.map((o) => o.cidade));
-  return { total: MOCK_OFERTAS.length, cidades: cidades.size, fornecedores: 83 };
+  return buscarStatusUpstream();
 }
