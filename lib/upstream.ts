@@ -1,5 +1,15 @@
 import axios from "axios";
-import type { OfertasQuery, OfertasResponse, Contato, Status, Oferta } from "./types";
+import type {
+  CidadeFiltro,
+  Contato,
+  FiltrosDisponiveis,
+  ModeloFiltro,
+  Oferta,
+  OfertasQuery,
+  OfertasResponse,
+  OpcaoFiltro,
+  Status,
+} from "./types";
 import { MOCK_OFERTAS, mockContatoPorId } from "./mock-ofertas";
 import { prisma } from "./prisma";
 
@@ -71,10 +81,110 @@ async function authHeaders() {
   return { Authorization: `Bearer ${token}` };
 }
 
+const TAMANHOS_PAGINA = new Set([10, 25, 50, 100]);
+const DURACAO_CACHE_FILTROS = 60_000;
+const TAMANHO_LOTE_FILTROS = 1_000;
+
+type LinhaFiltro = Pick<Oferta, "categoria" | "condicao" | "cor" | "cidade" | "modelo" | "variante">;
+
+let cacheFiltros: { valor: FiltrosDisponiveis; expiraEm: number } | null = null;
+let filtrosEmCarregamento: Promise<FiltrosDisponiveis> | null = null;
+
+function normalizarEspacos(valor: string) {
+  return valor.replace(/\s+/g, " ").trim();
+}
+
+function extrairArmazenamento(modelo: string, variante?: string | null): string | null {
+  const texto = `${modelo} ${variante ?? ""}`;
+  const memoriaCombinada = texto.match(/\b\d+\s*\/\s*(\d+(?:[.,]\d+)?)\s*(GB|TB)\b/i);
+  const capacidade = memoriaCombinada ?? texto.match(/\b(\d+(?:[.,]\d+)?)\s*(GB|TB)\b/i);
+
+  if (!capacidade) return null;
+  return `${capacidade[1].replace(",", ".")}${capacidade[2].toUpperCase()}`;
+}
+
+function extrairModeloBase(modelo: string) {
+  return normalizarEspacos(
+    modelo
+      .replace(/\b\d+\s*\/\s*\d+(?:[.,]\d+)?\s*(GB|TB)\b/gi, " ")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(GB|TB)\b/gi, " ")
+      .replace(/[\s\-\/|]+$/g, ""),
+  );
+}
+
+function extrairEstado(cidade: string) {
+  return cidade.match(/,\s*([A-Z]{2})\s*$/i)?.[1].toUpperCase() ?? "";
+}
+
+function valorPostgrest(valor: string) {
+  return `"${valor.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+function adicionarContagem(mapa: Map<string, { valor: string; total: number }>, valorOriginal: string) {
+  const valor = normalizarEspacos(valorOriginal);
+  if (!valor) return;
+  const chave = valor.toLocaleLowerCase("pt-BR");
+  const atual = mapa.get(chave);
+  if (atual) atual.total += 1;
+  else mapa.set(chave, { valor, total: 1 });
+}
+
+function ordenarOpcoes<T extends OpcaoFiltro>(opcoes: T[]) {
+  return opcoes.sort((a, b) => a.valor.localeCompare(b.valor, "pt-BR", { numeric: true }));
+}
+
+function montarFiltros(linhas: LinhaFiltro[]): FiltrosDisponiveis {
+  const categorias = new Map<string, OpcaoFiltro>();
+  const condicoes = new Map<string, OpcaoFiltro>();
+  const cores = new Map<string, OpcaoFiltro>();
+  const armazenamentos = new Map<string, OpcaoFiltro>();
+  const estados = new Map<string, OpcaoFiltro>();
+  const cidades = new Map<string, CidadeFiltro>();
+  const modelos = new Map<string, ModeloFiltro>();
+
+  for (const linha of linhas) {
+    adicionarContagem(categorias, linha.categoria);
+    adicionarContagem(condicoes, linha.condicao);
+    adicionarContagem(cores, linha.cor);
+
+    const armazenamento = extrairArmazenamento(linha.modelo, linha.variante);
+    if (armazenamento) adicionarContagem(armazenamentos, armazenamento);
+
+    const estado = extrairEstado(linha.cidade);
+    if (estado) adicionarContagem(estados, estado);
+
+    const chaveCidade = linha.cidade.toLocaleLowerCase("pt-BR");
+    const cidadeAtual = cidades.get(chaveCidade);
+    if (cidadeAtual) cidadeAtual.total += 1;
+    else if (linha.cidade && estado) cidades.set(chaveCidade, { valor: linha.cidade, estado, total: 1 });
+
+    const modelo = extrairModeloBase(linha.modelo);
+    if (modelo && linha.categoria) {
+      const chaveModelo = `${linha.categoria.toLocaleLowerCase("pt-BR")}::${modelo.toLocaleLowerCase("pt-BR")}`;
+      const modeloAtual = modelos.get(chaveModelo);
+      if (modeloAtual) modeloAtual.total += 1;
+      else modelos.set(chaveModelo, { valor: modelo, categoria: linha.categoria, total: 1 });
+    }
+  }
+
+  return {
+    categorias: ordenarOpcoes([...categorias.values()]),
+    modelos: ordenarOpcoes([...modelos.values()]),
+    condicoes: ordenarOpcoes([...condicoes.values()]),
+    cores: ordenarOpcoes([...cores.values()]),
+    armazenamentos: ordenarOpcoes([...armazenamentos.values()]),
+    estados: ordenarOpcoes([...estados.values()]),
+    cidades: ordenarOpcoes([...cidades.values()]),
+    geradoEm: new Date().toISOString(),
+  };
+}
+
 export async function buscarOfertas(query: OfertasQuery): Promise<OfertasResponse> {
+  const page = query.page && query.page > 0 ? Math.floor(query.page) : 1;
+  const tamanhoSolicitado = query.itensPorPagina ?? query.pageSize ?? 25;
+  const pageSize = TAMANHOS_PAGINA.has(tamanhoSolicitado) ? tamanhoSolicitado : 25;
+
   if (USANDO_UPSTREAM_REAL) {
-    const page = query.page && query.page > 0 ? query.page : 1;
-    const pageSize = query.pageSize && query.pageSize > 0 ? query.pageSize : 25;
     const offset = (page - 1) * pageSize;
 
     const params: Record<string, string> = { select: "*", offset: String(offset), limit: String(pageSize) };
@@ -82,10 +192,27 @@ export async function buscarOfertas(query: OfertasQuery): Promise<OfertasRespons
     if (query.condicao) params.condicao = `eq.${query.condicao}`;
     if (query.cor) params.cor = `eq.${query.cor}`;
     if (query.cidade) params.cidade = `eq.${query.cidade}`;
-    if (query.q) params.modelo = `ilike.*${query.q}*`;
+    else if (query.estado) params.cidade = `like.${valorPostgrest(`*, ${query.estado}`)}`;
+
+    const filtrosModelo: string[] = [];
+    if (query.q) filtrosModelo.push(`modelo.ilike.${valorPostgrest(`*${query.q}*`)}`);
+    // A origem não expõe colunas derivadas; modelo base e capacidade precisam
+    // ser traduzidos de volta para padrões sobre os campos textuais existentes.
+    if (query.modelo) filtrosModelo.push(`modelo.ilike.${valorPostgrest(`${query.modelo}*`)}`);
+    if (query.armazenamento) {
+      const armazenamento = valorPostgrest(`*${query.armazenamento}*`);
+      filtrosModelo.push(`or(modelo.ilike.${armazenamento},variante.ilike.${armazenamento})`);
+    }
+    if (filtrosModelo.length === 1 && !filtrosModelo[0].startsWith("or(")) {
+      const [campo, operador, ...valor] = filtrosModelo[0].split(".");
+      params[campo] = `${operador}.${valor.join(".")}`;
+    } else if (filtrosModelo.length > 0) {
+      params.and = `(${filtrosModelo.join(",")})`;
+    }
 
     if (query.sort === "menor-preco") params.order = "valor_num.asc";
     else if (query.sort === "maior-preco") params.order = "valor_num.desc";
+    else if (query.sort === "a-z") params.order = "modelo.asc";
     else params.order = "id.desc";
 
     const headers = { ...(await authHeaders()), Prefer: "count=exact" };
@@ -106,6 +233,11 @@ export async function buscarOfertas(query: OfertasQuery): Promise<OfertasRespons
   if (query.condicao) items = items.filter((o) => o.condicao === query.condicao);
   if (query.cor) items = items.filter((o) => o.cor === query.cor);
   if (query.cidade) items = items.filter((o) => o.cidade === query.cidade);
+  else if (query.estado) items = items.filter((o) => extrairEstado(o.cidade) === query.estado);
+  if (query.modelo) items = items.filter((o) => extrairModeloBase(o.modelo) === query.modelo);
+  if (query.armazenamento) {
+    items = items.filter((o) => extrairArmazenamento(o.modelo, o.variante) === query.armazenamento);
+  }
   if (query.q) {
     const termo = query.q.toLowerCase();
     items = items.filter((o) => o.modelo.toLowerCase().includes(termo));
@@ -113,15 +245,53 @@ export async function buscarOfertas(query: OfertasQuery): Promise<OfertasRespons
 
   if (query.sort === "menor-preco") items.sort((a, b) => a.valor_num - b.valor_num);
   else if (query.sort === "maior-preco") items.sort((a, b) => b.valor_num - a.valor_num);
+  else if (query.sort === "a-z") items.sort((a, b) => a.modelo.localeCompare(b.modelo, "pt-BR", { numeric: true }));
   else items.sort((a, b) => b.id - a.id);
 
   const total = items.length;
-  const page = query.page && query.page > 0 ? query.page : 1;
-  const pageSize = query.pageSize && query.pageSize > 0 ? query.pageSize : 25;
   const start = (page - 1) * pageSize;
   const paginado = items.slice(start, start + pageSize);
 
   return { items: paginado, total, page, pageSize };
+}
+
+export async function buscarFiltrosDisponiveis(): Promise<FiltrosDisponiveis> {
+  if (cacheFiltros && Date.now() < cacheFiltros.expiraEm) return cacheFiltros.valor;
+  if (filtrosEmCarregamento) return filtrosEmCarregamento;
+
+  filtrosEmCarregamento = (async () => {
+    let linhas: LinhaFiltro[];
+
+    if (USANDO_UPSTREAM_REAL) {
+      linhas = [];
+      const headers = await authHeaders();
+
+      for (let offset = 0; ; offset += TAMANHO_LOTE_FILTROS) {
+        const { data } = await supabase.get<LinhaFiltro[]>("/rest/v1/ofertas_publicas", {
+          params: {
+            select: "categoria,condicao,cor,cidade,modelo,variante",
+            offset: String(offset),
+            limit: String(TAMANHO_LOTE_FILTROS),
+          },
+          headers,
+        });
+        linhas.push(...data);
+        if (data.length < TAMANHO_LOTE_FILTROS) break;
+      }
+    } else {
+      linhas = MOCK_OFERTAS;
+    }
+
+    const valor = montarFiltros(linhas);
+    cacheFiltros = { valor, expiraEm: Date.now() + DURACAO_CACHE_FILTROS };
+    return valor;
+  })();
+
+  try {
+    return await filtrosEmCarregamento;
+  } finally {
+    filtrosEmCarregamento = null;
+  }
 }
 
 export async function buscarContato(id: number): Promise<Contato | null> {

@@ -1,192 +1,422 @@
 "use client";
 
-import {useCallback, useEffect, useState} from "react";
-import {useRouter} from "next/navigation";
-import type {Oferta, OfertasResponse, Status} from "@/lib/types";
-import {WhatsAppIcon} from "@/components/icons";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { FiltrosDisponiveis, Oferta, OfertasResponse, Status } from "@/lib/types";
+import { GridIcon, ListIcon, WhatsAppIcon } from "@/components/icons";
 
-const CATEGORIAS = ["iphone", "ipad", "macbook", "apple watch"];
-const CONDICOES = ["Usado", "Novo"];
-const CIDADES = ["São Paulo, SP", "Campo Grande, MS", "Guarulhos, SP"];
+type Visualizacao = "lista" | "grade";
+
+const QUANTIDADES_POR_PAGINA = [10, 25, 50, 100];
+const LIMITE_MODELOS = 7;
+
+function numeroPositivo(valor: string | null, padrao: number) {
+  const numero = Number(valor);
+  return Number.isInteger(numero) && numero > 0 ? numero : padrao;
+}
+
+function paginasVisiveis(atual: number, total: number) {
+  const inicio = Math.max(1, Math.min(atual - 3, total - 6));
+  const fim = Math.min(total, inicio + 6);
+  return Array.from({ length: fim - inicio + 1 }, (_, indice) => inicio + indice);
+}
+
+function RotuloComTotal({ valor, total }: { valor: string; total: number }) {
+  return <>{valor} — {total.toLocaleString("pt-BR")}</>;
+}
+
+function BuscadorConteudo() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const categoria = searchParams.get("categoria") ?? "";
+  const modelo = searchParams.get("modelo") ?? "";
+  const condicao = searchParams.get("condicao") ?? "";
+  const cor = searchParams.get("cor") ?? "";
+  const armazenamento = searchParams.get("armazenamento") ?? "";
+  const estado = searchParams.get("estado") ?? "";
+  const cidade = searchParams.get("cidade") ?? "";
+  const q = searchParams.get("q") ?? "";
+  const sort = searchParams.get("sort") ?? "recentes";
+  const page = numeroPositivo(searchParams.get("page"), 1);
+  const itensPorPagina = numeroPositivo(searchParams.get("itensPorPagina"), 25);
+
+  const [status, setStatus] = useState<Status | null>(null);
+  const [filtros, setFiltros] = useState<FiltrosDisponiveis | null>(null);
+  const [resultado, setResultado] = useState<OfertasResponse | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [carregandoFiltros, setCarregandoFiltros] = useState(true);
+  const [erro, setErro] = useState("");
+  const [contatoCarregando, setContatoCarregando] = useState<number | null>(null);
+  const [modelosExpandidos, setModelosExpandidos] = useState(false);
+  const [visualizacao, setVisualizacao] = useState<Visualizacao>("lista");
+
+  const alterarFiltro = useCallback((nome: string, valor: string, opcoes?: { manterPagina?: boolean }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (valor) params.set(nome, valor);
+    else params.delete(nome);
+
+    if (!opcoes?.manterPagina) params.delete("page");
+    const destino = params.size ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(destino, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    Promise.all([
+      fetch("/api/buscador/status", { signal: controller.signal }),
+      fetch("/api/buscador/filtros", { signal: controller.signal }),
+    ])
+      .then(async ([statusResponse, filtrosResponse]) => {
+        if (statusResponse.status === 401 || filtrosResponse.status === 401) {
+          router.push("/buscador/login");
+          return;
+        }
+        if (!statusResponse.ok || !filtrosResponse.ok) throw new Error("Falha ao carregar o catálogo.");
+        const [novoStatus, novosFiltros] = await Promise.all([statusResponse.json(), filtrosResponse.json()]);
+        setStatus(novoStatus);
+        setFiltros(novosFiltros);
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setErro("Não foi possível carregar todos os filtros.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCarregandoFiltros(false);
+      });
+
+    return () => controller.abort();
+  }, [router]);
+
+  useEffect(() => {
+    const preferencia = window.localStorage.getItem("buscador-visualizacao");
+    if (preferencia === "lista" || preferencia === "grade") setVisualizacao(preferencia);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sort", sort);
+    params.set("page", String(page));
+    params.set("itensPorPagina", String(itensPorPagina));
+
+    setCarregando(true);
+    setErro("");
+    fetch(`/api/buscador/ofertas?${params.toString()}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (response.status === 401) {
+          router.push("/buscador/login");
+          return null;
+        }
+        if (!response.ok) throw new Error("Falha ao buscar ofertas.");
+        return response.json() as Promise<OfertasResponse>;
+      })
+      .then((data) => {
+        if (data) setResultado(data);
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setErro("Não foi possível buscar as ofertas. Tente novamente.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCarregando(false);
+      });
+
+    return () => controller.abort();
+  }, [itensPorPagina, page, router, searchParams, sort]);
+
+  const modelosDaCategoria = useMemo(() => {
+    if (!filtros || !categoria) return [];
+    return filtros.modelos.filter((item) => item.categoria === categoria);
+  }, [categoria, filtros]);
+
+  const cidadesDoEstado = useMemo(() => {
+    if (!filtros) return [];
+    return filtros.cidades.filter((item) => !estado || item.estado === estado);
+  }, [estado, filtros]);
+
+  const modelosVisiveis = modelosExpandidos ? modelosDaCategoria : modelosDaCategoria.slice(0, LIMITE_MODELOS);
+  const totalPaginas = resultado ? Math.max(1, Math.ceil(resultado.total / resultado.pageSize)) : 1;
+
+  function mudarCategoria(valor: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (valor) params.set("categoria", valor);
+    else params.delete("categoria");
+    params.delete("modelo");
+    params.delete("page");
+    router.replace(params.size ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
+    setModelosExpandidos(false);
+  }
+
+  function mudarEstado(valor: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (valor) params.set("estado", valor);
+    else params.delete("estado");
+    params.delete("cidade");
+    params.delete("page");
+    router.replace(params.size ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
+  }
+
+  function limparFiltros() {
+    router.replace(pathname, { scroll: false });
+    setModelosExpandidos(false);
+  }
+
+  function mudarVisualizacao(novaVisualizacao: Visualizacao) {
+    setVisualizacao(novaVisualizacao);
+    window.localStorage.setItem("buscador-visualizacao", novaVisualizacao);
+  }
+
+  async function abrirWhatsApp(oferta: Oferta) {
+    setContatoCarregando(oferta.id);
+    try {
+      const response = await fetch(`/api/buscador/ofertas/${oferta.id}/contato`);
+      if (response.status === 401) {
+        router.push("/buscador/login");
+        return;
+      }
+      if (!response.ok) throw new Error("Contato indisponível.");
+      const contato = await response.json();
+      const url = new URL(contato.whatsapp_url);
+      url.searchParams.set("text", `Oi! Vi o ${oferta.modelo} (${oferta.cor}, ${oferta.condicao}) por ${oferta.valor}.`);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+    } catch {
+      setErro("Não foi possível abrir o contato desta oferta.");
+    } finally {
+      setContatoCarregando(null);
+    }
+  }
+
+  async function sair() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/buscador/login");
+  }
+
+  return (
+    <div className="busca-shell">
+      <header className="busca-header">
+        <span className="busca-marca"><span className="wordmark">MARIADAMAVI</span><span aria-hidden="true">·</span> Catálogo</span>
+        {status && (
+          <div className="stats" aria-label="Resumo do catálogo">
+            <span><b>{status.total.toLocaleString("pt-BR")}</b> ofertas</span>
+            <span><b>{status.fornecedores.toLocaleString("pt-BR")}</b> fornecedores</span>
+            <span><b>{status.cidades.toLocaleString("pt-BR")}</b> cidades</span>
+          </div>
+        )}
+        <button type="button" className="logout" onClick={sair}>Sair</button>
+      </header>
+
+      <main className="busca-body">
+        <div className="catalogo-layout">
+          <aside className="painel-filtros" aria-label="Filtros do catálogo">
+            <div className="painel-filtros__topo">
+              <h2>Filtros</h2>
+              <button type="button" onClick={limparFiltros}>Limpar</button>
+            </div>
+
+            {carregandoFiltros && <p className="filtros-loading">Carregando opções...</p>}
+
+            <div className="grupo-filtro">
+              <label htmlFor="filtro-categoria">Categoria</label>
+              <select id="filtro-categoria" value={categoria} onChange={(event) => mudarCategoria(event.target.value)} disabled={!filtros}>
+                <option value="">Todas as categorias</option>
+                {filtros?.categorias.map((item) => (
+                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grupo-filtro">
+              <span className="grupo-filtro__rotulo">Modelo</span>
+              {!categoria && <p className="grupo-filtro__ajuda">Selecione uma categoria para ver os modelos.</p>}
+              {categoria && modelosDaCategoria.length === 0 && !carregandoFiltros && (
+                <p className="grupo-filtro__ajuda">Nenhum modelo disponível nesta categoria.</p>
+              )}
+              {modelosVisiveis.length > 0 && (
+                <div className="opcoes-modelo">
+                  <button type="button" className={!modelo ? "ativo" : ""} onClick={() => alterarFiltro("modelo", "")}>Todos</button>
+                  {modelosVisiveis.map((item) => (
+                    <button
+                      type="button"
+                      className={modelo === item.valor ? "ativo" : ""}
+                      key={`${item.categoria}-${item.valor}`}
+                      onClick={() => alterarFiltro("modelo", modelo === item.valor ? "" : item.valor)}
+                    >
+                      <RotuloComTotal valor={item.valor} total={item.total} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {modelosDaCategoria.length > LIMITE_MODELOS && (
+                <button type="button" className="ver-mais" onClick={() => setModelosExpandidos((valor) => !valor)}>
+                  {modelosExpandidos ? "Ver menos" : `Ver mais (${modelosDaCategoria.length - LIMITE_MODELOS})`}
+                </button>
+              )}
+            </div>
+
+            <div className="grupo-filtro">
+              <label htmlFor="filtro-condicao">Condição</label>
+              <select id="filtro-condicao" value={condicao} onChange={(event) => alterarFiltro("condicao", event.target.value)} disabled={!filtros}>
+                <option value="">Todos</option>
+                {filtros?.condicoes.map((item) => (
+                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grupo-filtro grupo-filtro--duplo">
+              <div>
+                <label htmlFor="filtro-estado">Estado</label>
+                <select id="filtro-estado" value={estado} onChange={(event) => mudarEstado(event.target.value)} disabled={!filtros}>
+                  <option value="">Todos</option>
+                  {filtros?.estados.map((item) => (
+                    <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="filtro-cidade">Cidade</label>
+                <select id="filtro-cidade" value={cidade} onChange={(event) => alterarFiltro("cidade", event.target.value)} disabled={!filtros || !estado}>
+                  <option value="">Todas</option>
+                  {cidadesDoEstado.map((item) => (
+                    <option key={item.valor} value={item.valor}>{item.valor.replace(/,\s*[A-Z]{2}$/i, "")} — {item.total.toLocaleString("pt-BR")}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grupo-filtro">
+              <label htmlFor="filtro-cor">Cor</label>
+              <select id="filtro-cor" value={cor} onChange={(event) => alterarFiltro("cor", event.target.value)} disabled={!filtros}>
+                <option value="">Todas as cores</option>
+                {filtros?.cores.map((item) => (
+                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grupo-filtro">
+              <label htmlFor="filtro-armazenamento">Armazenamento</label>
+              <select id="filtro-armazenamento" value={armazenamento} onChange={(event) => alterarFiltro("armazenamento", event.target.value)} disabled={!filtros}>
+                <option value="">Todos</option>
+                {filtros?.armazenamentos.map((item) => (
+                  <option key={item.valor} value={item.valor}>{item.valor} — {item.total.toLocaleString("pt-BR")}</option>
+                ))}
+              </select>
+            </div>
+          </aside>
+
+          <section className="catalogo-resultados" aria-labelledby="titulo-resultados">
+            <div className="barra-catalogo filtros">
+              <input
+                className="busca-texto"
+                type="search"
+                aria-label="Buscar por modelo"
+                placeholder="Buscar por modelo (ex.: iPhone 13)"
+                value={q}
+                onChange={(event) => alterarFiltro("q", event.target.value)}
+              />
+              <select aria-label="Ordenar ofertas" value={sort} onChange={(event) => alterarFiltro("sort", event.target.value)}>
+                <option value="recentes">Mais recentes</option>
+                <option value="menor-preco">Menor preço</option>
+                <option value="maior-preco">Maior preço</option>
+                <option value="a-z">Modelo: A → Z</option>
+              </select>
+              <select
+                aria-label="Itens por página"
+                value={itensPorPagina}
+                onChange={(event) => alterarFiltro("itensPorPagina", event.target.value)}
+              >
+                {QUANTIDADES_POR_PAGINA.map((quantidade) => <option key={quantidade} value={quantidade}>{quantidade} por página</option>)}
+              </select>
+            </div>
+
+            <div className="resultados-topo">
+              <div>
+                <h2 id="titulo-resultados">Resultados</h2>
+                {resultado && <span>{resultado.total.toLocaleString("pt-BR")} produtos encontrados</span>}
+              </div>
+              <div className="visualizacao-toggle" aria-label="Modo de visualização">
+                <button type="button" aria-label="Visualizar em lista" aria-pressed={visualizacao === "lista"} onClick={() => mudarVisualizacao("lista")}>
+                  <ListIcon className="ic" />
+                </button>
+                <button type="button" aria-label="Visualizar em grade" aria-pressed={visualizacao === "grade"} onClick={() => mudarVisualizacao("grade")}>
+                  <GridIcon className="ic" />
+                </button>
+              </div>
+            </div>
+
+            {erro && <div className="catalogo-erro" role="alert">{erro}</div>}
+            {carregando && <div className="estado-vazio">Buscando ofertas...</div>}
+
+            {!carregando && resultado && resultado.items.length === 0 && (
+              <div className="estado-vazio">Nenhuma oferta encontrada com esses filtros.</div>
+            )}
+
+            {!carregando && resultado && resultado.items.length > 0 && (
+              <div className={`oferta-lista oferta-lista--${visualizacao}`}>
+                {resultado.items.map((oferta) => (
+                  <article className="oferta-row" key={oferta.id}>
+                    <div className="oferta-foto-wrap">
+                      <span aria-hidden="true">Sem foto</span>
+                      {oferta.foto_url && (
+                        <img
+                          className="oferta-foto"
+                          src={oferta.foto_url}
+                          alt={`Foto de ${oferta.modelo}`}
+                          loading="lazy"
+                          onError={(event) => { event.currentTarget.hidden = true; }}
+                        />
+                      )}
+                    </div>
+                    <div className="oferta-info">
+                      <h3>{oferta.modelo}</h3>
+                      <div className="oferta-tags">
+                        <span className={`tag ${oferta.condicao.toLocaleLowerCase("pt-BR") === "usado" ? "usado" : "novo"}`}>{oferta.condicao}</span>
+                        {oferta.cor && <span className="tag">{oferta.cor}</span>}
+                        {oferta.verificado && <span className="tag verificado">Verificado</span>}
+                      </div>
+                      <span className="oferta-local">{oferta.cidade} · {oferta.data_atualizacao}</span>
+                    </div>
+                    <div className="oferta-preco">{oferta.valor}</div>
+                    <div className="oferta-actions">
+                      <button
+                        type="button"
+                        className="btn-whatsapp"
+                        onClick={() => abrirWhatsApp(oferta)}
+                        disabled={contatoCarregando === oferta.id}
+                      >
+                        <WhatsAppIcon className="ic" style={{ width: 16, height: 16 }} />
+                        {contatoCarregando === oferta.id ? "Abrindo..." : "WhatsApp"}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {resultado && totalPaginas > 1 && (
+              <nav className="paginacao" aria-label="Paginação dos resultados">
+                <button type="button" aria-label="Página anterior" onClick={() => alterarFiltro("page", String(page - 1), { manterPagina: true })} disabled={page <= 1}>‹</button>
+                {paginasVisiveis(page, totalPaginas).map((pagina) => (
+                  <button type="button" key={pagina} aria-current={pagina === page ? "page" : undefined} onClick={() => alterarFiltro("page", String(pagina), { manterPagina: true })}>{pagina}</button>
+                ))}
+                <button type="button" aria-label="Próxima página" onClick={() => alterarFiltro("page", String(page + 1), { manterPagina: true })} disabled={page >= totalPaginas}>›</button>
+              </nav>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 export default function BuscadorPage() {
-    const router = useRouter();
-
-    const [status, setStatus] = useState<Status | null>(null);
-    const [categoria, setCategoria] = useState("");
-    const [condicao, setCondicao] = useState("");
-    const [cidade, setCidade] = useState("");
-    const [q, setQ] = useState("");
-    const [sort, setSort] = useState("recentes");
-    const [page, setPage] = useState(1);
-
-    const [resultado, setResultado] = useState<OfertasResponse | null>(null);
-    const [carregando, setCarregando] = useState(true);
-    const [contatoCarregando, setContatoCarregando] = useState<number | null>(null);
-
-    useEffect(() => {
-        fetch("/api/buscador/status")
-            .then((r) => r.json())
-            .then(setStatus)
-            .catch(() => {
-            });
-    }, []);
-
-    const buscar = useCallback(async () => {
-        setCarregando(true);
-        const params = new URLSearchParams();
-        if (categoria) params.set("categoria", categoria);
-        if (condicao) params.set("condicao", condicao);
-        if (cidade) params.set("cidade", cidade);
-        if (q) params.set("q", q);
-        params.set("sort", sort);
-        params.set("page", String(page));
-        params.set("pageSize", "25");
-
-        try {
-            const res = await fetch(`/api/buscador/ofertas?${params.toString()}`);
-            if (res.status === 401) {
-                router.push("/buscador/login");
-                return;
-            }
-            const data = await res.json();
-            setResultado(data);
-        } finally {
-            setCarregando(false);
-        }
-    }, [categoria, condicao, cidade, q, sort, page, router]);
-
-    useEffect(() => {
-        buscar();
-    }, [buscar]);
-
-    useEffect(() => {
-        setPage(1);
-    }, [categoria, condicao, cidade, q, sort]);
-
-    async function abrirWhatsApp(oferta: Oferta) {
-        setContatoCarregando(oferta.id);
-        try {
-            const res = await fetch(`/api/buscador/ofertas/${oferta.id}/contato`);
-            if (!res.ok) return;
-            const contato = await res.json();
-            const msg = encodeURIComponent(
-                `Oi! Vi o ${oferta.modelo} (${oferta.cor}, ${oferta.condicao}) por ${oferta.valor}.`
-            );
-            window.open(`${contato.whatsapp_url}?text=${msg}`, "_blank");
-        } finally {
-            setContatoCarregando(null);
-        }
-    }
-
-    async function sair() {
-        await fetch("/api/auth/logout", {method: "POST"});
-        router.push("/buscador/login");
-    }
-
-    const totalPaginas = resultado ? Math.max(1, Math.ceil(resultado.total / resultado.pageSize)) : 1;
-
-    return (
-        <div className="busca-shell">
-            <div className="busca-header">
-                <span className="wordmark">MARIADAMAVI · Buscador</span>
-                {status && (
-                    <div className="stats">
-                        <span><b>{status.total.toLocaleString("pt-BR")}</b> ofertas</span>
-                        <span><b>{status.fornecedores}</b> fornecedores</span>
-                        <span><b>{status.cidades}</b> cidades</span>
-                    </div>
-                )}
-                <button className="logout" onClick={sair}>Sair</button>
-            </div>
-
-            <div className="busca-body">
-                <div className="filtros">
-                    <input
-                        className="busca-texto"
-                        placeholder="Buscar por modelo (ex: iPhone 13)"
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                    />
-                    <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                        <option value="">Todas as categorias</option>
-                        {CATEGORIAS.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
-                    <select value={condicao} onChange={(e) => setCondicao(e.target.value)}>
-                        <option value="">Novo e usado</option>
-                        {CONDICOES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
-                    <select value={cidade} onChange={(e) => setCidade(e.target.value)}>
-                        <option value="">Todas as cidades</option>
-                        {CIDADES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
-                    <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                        <option value="recentes">Mais recentes</option>
-                        <option value="menor-preco">Menor preço</option>
-                        <option value="maior-preco">Maior preço</option>
-                    </select>
-                </div>
-
-                <div className="resultados-topo">
-                    <h2>Resultados</h2>
-                    {resultado && <span>{resultado.total.toLocaleString("pt-BR")} ofertas encontradas</span>}
-                </div>
-
-                {carregando && <div className="estado-vazio">Buscando...</div>}
-
-                {!carregando && resultado && resultado.items.length === 0 && (
-                    <div className="estado-vazio">Nenhuma oferta encontrada com esses filtros.</div>
-                )}
-
-                {!carregando && resultado && resultado.items.length > 0 && (
-                    <div className="oferta-lista">
-                        {resultado.items.map((oferta) => (
-                            <div className="oferta-row" key={oferta.id}>
-                                <div className="oferta-info">
-                                    <h3>{oferta.modelo}</h3>
-                                    <div className="oferta-tags">
-                                        <span
-                                            className={`tag ${oferta.condicao === "Usado" ? "usado" : "novo"}`}>{oferta.condicao}</span>
-                                        <span className="tag">{oferta.cor}</span>
-                                        {oferta.verificado && <span className="tag verificado">Verificado</span>}
-                                        <span
-                                            className="oferta-local">{oferta.cidade} · {oferta.data_atualizacao}</span>
-                                    </div>
-                                </div>
-                                <div className="oferta-preco">{oferta.valor}</div>
-                                <div className="oferta-actions">
-                                    <button
-                                        className="btn-whatsapp"
-                                        onClick={() => abrirWhatsApp(oferta)}
-                                        disabled={contatoCarregando === oferta.id}
-                                    >
-                                        <WhatsAppIcon className="ic" style={{width: 16, height: 16}}/>
-                                        {contatoCarregando === oferta.id ? "Abrindo..." : "WhatsApp"}
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {resultado && totalPaginas > 1 && (
-                    <div className="paginacao">
-                        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>‹</button>
-                        {Array.from({length: Math.min(totalPaginas, 7)}, (_, i) => i + 1).map((p) => (
-                            <button key={p} aria-current={p === page} onClick={() => setPage(p)}>{p}</button>
-                        ))}
-                        <button onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
-                                disabled={page >= totalPaginas}>›
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+  return (
+    <Suspense fallback={<div className="busca-shell"><div className="estado-vazio">Carregando catálogo...</div></div>}>
+      <BuscadorConteudo />
+    </Suspense>
+  );
 }

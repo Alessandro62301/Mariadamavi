@@ -9,11 +9,14 @@ export async function GET(req: NextRequest) {
     categoria: sp.get("categoria") || undefined,
     condicao: sp.get("condicao") || undefined,
     cor: sp.get("cor") || undefined,
+    estado: sp.get("estado") || undefined,
     cidade: sp.get("cidade") || undefined,
+    modelo: sp.get("modelo") || undefined,
+    armazenamento: sp.get("armazenamento") || undefined,
     q: sp.get("q") || undefined,
     sort: (sp.get("sort") as OfertasQuery["sort"]) || "recentes",
     page: Number(sp.get("page")) || 1,
-    pageSize: Number(sp.get("pageSize")) || 25,
+    itensPorPagina: Number(sp.get("itensPorPagina") || sp.get("pageSize")) || 25,
   };
 
   try {
