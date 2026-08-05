@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import styles from "./TrackingExperience.module.css";
+import TrackingCity3D from "./TrackingCity3D";
 
 const journey = [
   {
@@ -81,27 +82,7 @@ export default function TrackingExperience() {
           </div>
 
           <div className={styles.map} aria-label="Mapa interativo da rota da sua encomenda">
-            <div className={styles.mapGrid} aria-hidden="true" />
-            <div className={styles.landOne} aria-hidden="true" />
-            <div className={styles.landTwo} aria-hidden="true" />
-            <div className={styles.landThree} aria-hidden="true" />
-            <div className={styles.route} aria-hidden="true">
-              <i className={styles.lineOne} /><i className={styles.lineTwo} /><i className={styles.lineThree} />
-              <span className={styles.traveler}><b>⌁</b></span>
-            </div>
-
-            {journey.map((step, index) => (
-              <button
-                key={step.city}
-                className={`${styles.pin} ${styles[`pin${index}`]} ${active === index ? styles.pinActive : ""}`}
-                onClick={() => setActive(index)}
-                aria-label={`Ver etapa: ${step.label}, ${step.city}`}
-                aria-pressed={active === index}
-              >
-                <span>{step.icon}</span>
-                <small>{step.city.split(",")[0]}</small>
-              </button>
-            ))}
+            <div className={styles.cityCanvas}><TrackingCity3D active={active} onSelect={setActive} /></div>
 
             <article className={styles.floatCard}>
               <div className={styles.floatIcon}>{journey[active].icon}</div>
