@@ -12,6 +12,41 @@ type TelegramUpdate = {
   };
 };
 
+const LIMITE_PUBLICO_POR_HORA = 30;
+const INTERVALO_PUBLICO_MS = 2_000;
+
+async function conversaPublica(chatId: string, username?: string) {
+  const agora = new Date();
+  return prisma.$transaction(async (tx) => {
+    const atual = await tx.telegramConversaPublica.findUnique({ where: { chatId } });
+    if (!atual) {
+      const conversa = await tx.telegramConversaPublica.create({
+        data: { chatId, username, ultimaMensagemEm: agora, janelaInicio: agora, mensagensNaJanela: 1 },
+      });
+      return { conversa, bloqueio: null as "intervalo" | "limite" | null };
+    }
+
+    if (atual.ultimaMensagemEm && agora.getTime() - atual.ultimaMensagemEm.getTime() < INTERVALO_PUBLICO_MS) {
+      return { conversa: atual, bloqueio: "intervalo" as const };
+    }
+    const novaJanela = agora.getTime() - atual.janelaInicio.getTime() >= 60 * 60 * 1_000;
+    if (!novaJanela && atual.mensagensNaJanela >= LIMITE_PUBLICO_POR_HORA) {
+      return { conversa: atual, bloqueio: "limite" as const };
+    }
+
+    const conversa = await tx.telegramConversaPublica.update({
+      where: { chatId },
+      data: {
+        username: username ?? atual.username,
+        ultimaMensagemEm: agora,
+        janelaInicio: novaJanela ? agora : atual.janelaInicio,
+        mensagensNaJanela: novaJanela ? 1 : { increment: 1 },
+      },
+    });
+    return { conversa, bloqueio: null as "intervalo" | "limite" | null };
+  });
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (!secret || req.headers.get("x-telegram-bot-api-secret-token") !== secret) {
@@ -42,6 +77,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    const contextoPublico = await prisma.telegramConversaPublica.findUnique({ where: { chatId: chatIdTexto } });
     await prisma.telegramVinculo.update({
       where: { id: vinculo.id },
       data: {
@@ -50,25 +86,32 @@ export async function POST(req: NextRequest) {
         vinculadoEm: new Date(),
         codigo: null,
         codigoExpiraEm: null,
-        contextoBusca: Prisma.DbNull,
+        contextoBusca: contextoPublico?.contextoBusca
+          ? contextoPublico.contextoBusca as Prisma.InputJsonValue
+          : Prisma.DbNull,
       },
     });
+    await prisma.telegramConversaPublica.deleteMany({ where: { chatId: chatIdTexto } });
     await enviarTelegram(chatIdTexto, `Telegram conectado à sua conta MARIADAMAVI.\n\n${ajudaTelegram()}`);
     return NextResponse.json({ ok: true });
   }
 
   const vinculo = await prisma.telegramVinculo.findUnique({ where: { chatId: chatIdTexto } });
-  if (!vinculo) {
-    await enviarTelegram(chatIdTexto, "Vincule o Telegram primeiro pela tela de configurações do MARIADAMAVI.");
-    return NextResponse.json({ ok: true });
-  }
 
   if (/^\/(start|ajuda)(?:@\w+)?$/i.test(texto)) {
     await enviarTelegram(chatIdTexto, ajudaTelegram());
     return NextResponse.json({ ok: true });
   }
   if (/^\/limpar(?:@\w+)?$/i.test(texto)) {
-    await prisma.telegramVinculo.update({ where: { id: vinculo.id }, data: { contextoBusca: Prisma.DbNull } });
+    if (vinculo) {
+      await prisma.telegramVinculo.update({ where: { id: vinculo.id }, data: { contextoBusca: Prisma.DbNull } });
+    } else {
+      await prisma.telegramConversaPublica.upsert({
+        where: { chatId: chatIdTexto },
+        create: { chatId: chatIdTexto, username: update?.message?.from?.username, contextoBusca: Prisma.DbNull },
+        update: { contextoBusca: Prisma.DbNull, contextoAtualizadoEm: null },
+      });
+    }
     await enviarTelegram(chatIdTexto, "Conversa limpa. Qual produto você quer procurar?");
     return NextResponse.json({ ok: true });
   }
@@ -79,11 +122,42 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const resultado = await processarConversaTelegram(vinculo, texto);
-    await prisma.telegramVinculo.update({
-      where: { id: vinculo.id },
-      data: { contextoBusca: resultado.contexto ? resultado.contexto as Prisma.InputJsonValue : Prisma.DbNull },
-    });
+    let contextoOrigem: { contextoBusca: Prisma.JsonValue | null; atualizadoEm: Date } = vinculo
+      ? { contextoBusca: vinculo.contextoBusca, atualizadoEm: vinculo.atualizadoEm }
+      : { contextoBusca: null, atualizadoEm: new Date(0) };
+    let conversaAnonima: Awaited<ReturnType<typeof conversaPublica>>["conversa"] | null = null;
+    if (!vinculo) {
+      const publico = await conversaPublica(chatIdTexto, update?.message?.from?.username);
+      if (publico.bloqueio === "intervalo") {
+        await enviarTelegram(chatIdTexto, "Espere alguns segundos antes de enviar outra mensagem.");
+        return NextResponse.json({ ok: true });
+      }
+      if (publico.bloqueio === "limite") {
+        await enviarTelegram(chatIdTexto, "Você atingiu o limite de consultas desta hora. Tente novamente mais tarde.");
+        return NextResponse.json({ ok: true });
+      }
+      conversaAnonima = publico.conversa;
+      contextoOrigem = {
+        contextoBusca: publico.conversa.contextoBusca,
+        atualizadoEm: publico.conversa.contextoAtualizadoEm ?? new Date(0),
+      };
+    }
+
+    const resultado = await processarConversaTelegram(contextoOrigem, texto);
+    if (vinculo) {
+      await prisma.telegramVinculo.update({
+        where: { id: vinculo.id },
+        data: { contextoBusca: resultado.contexto ? resultado.contexto as Prisma.InputJsonValue : Prisma.DbNull },
+      });
+    } else if (conversaAnonima) {
+      await prisma.telegramConversaPublica.update({
+        where: { chatId: conversaAnonima.chatId },
+        data: {
+          contextoBusca: resultado.contexto ? resultado.contexto as Prisma.InputJsonValue : Prisma.DbNull,
+          contextoAtualizadoEm: resultado.contexto ? new Date() : null,
+        },
+      });
+    }
     await enviarTelegram(chatIdTexto, resultado.texto);
   } catch (error) {
     console.error("[telegram/ia]", error instanceof Error ? error.message : "Erro desconhecido");

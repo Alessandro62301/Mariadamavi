@@ -116,6 +116,18 @@ model TelegramVinculo {
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model TelegramConversaPublica {
+  chatId               String    @id @db.VarChar(64)
+  username             String?
+  contextoBusca        Json?
+  contextoAtualizadoEm DateTime?
+  ultimaMensagemEm     DateTime?
+  janelaInicio         DateTime  @default(now())
+  mensagensNaJanela    Int       @default(0)
+  criadoEm             DateTime  @default(now())
+  atualizadoEm         DateTime  @updatedAt
+}
+
 model PreferenciaBusca {
   id                 Int      @id @default(autoincrement())
   userId             Int      @unique
