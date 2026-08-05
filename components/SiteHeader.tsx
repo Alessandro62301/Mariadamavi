@@ -7,25 +7,27 @@ import { WhatsAppIcon, MenuIcon } from "./icons";
 const WHATSAPP_BASE = "https://wa.me/5521920184210";
 
 const NAV_LINKS = [
-  { href: "/#como-funciona", label: "Como funciona" },
-  { href: "/#produtos", label: "Produtos" },
-  { href: "/#seguranca", label: "Segurança" },
-  { href: "/#guia", label: "Sobre a Mavi" },
+  { hash: "como-funciona", label: "Como funciona" },
+  { hash: "produtos", label: "Produtos" },
+  { hash: "seguranca", label: "Segurança" },
+  { hash: "guia", label: "Sobre a Mavi" },
   { href: "/faq", label: "Dúvidas" },
 ];
 
-export default function SiteHeader() {
+export default function SiteHeader({ homePath = "/" }: { homePath?: string }) {
   const [open, setOpen] = useState(false);
+  const resolveHref = (link: (typeof NAV_LINKS)[number]) =>
+    "hash" in link ? `${homePath}#${link.hash}` : link.href;
 
   return (
     <header>
       <div className="header-bar">
-        <Link className="wordmark" href="/#topo">
+        <Link className="wordmark" href={`${homePath}#topo`}>
           MARIADAMAVI
         </Link>
         <nav className="primary-nav" aria-label="Navegação principal">
           {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href}>
+            <Link key={link.label} href={resolveHref(link)}>
               {link.label}
             </Link>
           ))}
@@ -51,7 +53,7 @@ export default function SiteHeader() {
       </div>
       <nav id="mobile-nav" hidden={!open} aria-label="Navegação mobile">
         {NAV_LINKS.map((link) => (
-          <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>
+          <Link key={link.label} href={resolveHref(link)} onClick={() => setOpen(false)}>
             {link.label}
           </Link>
         ))}

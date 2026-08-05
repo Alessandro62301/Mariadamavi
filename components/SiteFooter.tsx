@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function SiteFooter() {
+export default function SiteFooter({ homePath = "/" }: { homePath?: string }) {
   return (
     <footer>
       <div className="container">
@@ -14,9 +14,9 @@ export default function SiteFooter() {
             </p>
           </div>
           <ul className="footer-links">
-            <li><Link href="/#como-funciona">Como funciona</Link></li>
-            <li><Link href="/#produtos">Produtos</Link></li>
-            <li><Link href="/#seguranca">Segurança</Link></li>
+            <li><Link href={`${homePath}#como-funciona`}>Como funciona</Link></li>
+            <li><Link href={`${homePath}#produtos`}>Produtos</Link></li>
+            <li><Link href={`${homePath}#seguranca`}>Segurança</Link></li>
             <li><Link href="/faq">Dúvidas</Link></li>
             <li><a href="#">Instagram</a></li>
             <li><a href="https://wa.me/5521920184210">WhatsApp</a></li>
