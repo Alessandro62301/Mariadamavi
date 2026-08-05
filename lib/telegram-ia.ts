@@ -98,6 +98,34 @@ function validarInterpretacao(valor: unknown): Interpretacao {
   };
 }
 
+function aplicarFiltrosExplicitos(mensagem: string, interpretacao: Interpretacao): Interpretacao {
+  const texto = mensagem.toLocaleLowerCase("pt-BR");
+  const resultado = { ...interpretacao };
+
+  if (/\bqualquer\s+(?:capacidade|armazenamento|mem[oó]ria)\b/i.test(texto)) {
+    resultado.armazenamento = null;
+  } else {
+    const capacidadeComUnidade = texto.match(/\b(\d+(?:[.,]\d+)?)\s*(gb|tb)\b/i);
+    const capacidadeSemUnidade = texto.match(/\b(32|64|128|256|512|1024|2048)\b/);
+    if (capacidadeComUnidade) {
+      resultado.armazenamento = `${capacidadeComUnidade[1].replace(",", ".")}${capacidadeComUnidade[2].toUpperCase()}`;
+    } else if (capacidadeSemUnidade) {
+      const numero = Number(capacidadeSemUnidade[1]);
+      resultado.armazenamento = numero >= 1024 ? `${numero / 1024}TB` : `${numero}GB`;
+    }
+  }
+
+  if (/\bqualquer\s+condi[cç][aã]o\b/i.test(texto)) {
+    resultado.condicao = null;
+  } else if (/\b(usad[oa]|seminov[oa])\b/i.test(texto)) {
+    resultado.condicao = "Usado";
+  } else if (!/\bde\s+novo\b/i.test(texto) && /\b(nov[oa]|lacrad[oa]|zero)\b/i.test(texto)) {
+    resultado.condicao = "Novo";
+  }
+
+  return resultado;
+}
+
 async function interpretarMensagem(mensagem: string, contexto: ContextoBusca): Promise<Interpretacao> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY não configurada.");
@@ -121,6 +149,8 @@ async function interpretarMensagem(mensagem: string, contexto: ContextoBusca): P
         "Use acao buscar quando houver produto ou filtro suficiente para consultar.",
         "Use conversar para saudações ou quando precisar perguntar qual produto o usuário procura.",
         "Use alerta quando o usuário pedir para ser avisado. Use limpar quando pedir para recomeçar.",
+        "Números de capacidade como 128, 256 ou 512 sem unidade significam GB; 1TB e 2TB permanecem TB.",
+        "Mantenha modelo sem capacidade, cor ou condição: por exemplo, modelo iPhone 17 Pro e armazenamento 512GB.",
         "Nunca invente preços, disponibilidade ou lojas; esses dados virão do banco.",
         "Quando o usuário disser qualquer cor, capacidade ou condição, retorne null nesse filtro.",
       ].join(" "),
@@ -157,7 +187,7 @@ async function interpretarMensagem(mensagem: string, contexto: ContextoBusca): P
   const resposta = await response.json() as RespostaOpenAI;
   const texto = textoDaResposta(resposta);
   if (!texto) throw new Error("OpenAI não retornou texto estruturado.");
-  return validarInterpretacao(JSON.parse(texto));
+  return aplicarFiltrosExplicitos(mensagem, validarInterpretacao(JSON.parse(texto)));
 }
 
 function linkCatalogo(contexto: ContextoBusca) {
@@ -173,9 +203,19 @@ function linkCatalogo(contexto: ContextoBusca) {
 }
 
 async function buscarOfertas(contexto: ContextoBusca) {
+  const modeloExato = contexto.modelo
+    ? await prisma.ofertaCache.findFirst({
+      where: { modeloBase: contexto.modelo },
+      select: { modeloBase: true },
+    })
+    : null;
   const where: Prisma.OfertaCacheWhereInput = {
     ...(contexto.categoria ? { categoria: contexto.categoria } : {}),
-    ...(contexto.modelo ? { modelo: { contains: contexto.modelo } } : {}),
+    ...(contexto.modelo
+      ? modeloExato
+        ? { modeloBase: modeloExato.modeloBase }
+        : { modelo: { contains: contexto.modelo } }
+      : {}),
     ...(contexto.cor ? { cor: { contains: contexto.cor } } : {}),
     ...(contexto.armazenamento ? { armazenamento: contexto.armazenamento } : {}),
     ...(contexto.condicao ? { condicao: { contains: contexto.condicao } } : {}),
@@ -189,9 +229,23 @@ async function buscarOfertas(contexto: ContextoBusca) {
   return { ofertas, total };
 }
 
+function resumoFiltros(contexto: ContextoBusca) {
+  const partes = [
+    contexto.modelo,
+    contexto.armazenamento,
+    contexto.cor,
+    contexto.condicao,
+    contexto.cidade,
+    contexto.precoMaximo ? `até ${contexto.precoMaximo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : null,
+  ].filter(Boolean);
+  return partes.length ? partes.join(" · ") : contexto.categoria || "todos os produtos";
+}
+
 function formatarResultados(contexto: ContextoBusca, resultado: Awaited<ReturnType<typeof buscarOfertas>>) {
   if (resultado.total === 0) {
     return [
+      `Entendi: ${resumoFiltros(contexto)}.`,
+      "",
       "Não encontrei ofertas com esses filtros.",
       "Você pode retirar uma cor, capacidade ou limite de preço e tentar novamente.",
       "",
@@ -206,6 +260,8 @@ function formatarResultados(contexto: ContextoBusca, resultado: Awaited<ReturnTy
     "",
   ]);
   return [
+    `Entendi: ${resumoFiltros(contexto)}.`,
+    "",
     `Encontrei ${resultado.total.toLocaleString("pt-BR")} oferta${resultado.total === 1 ? "" : "s"}.`,
     "Estas são as mais baratas:",
     "",

@@ -36,6 +36,10 @@ const supabase = axios.create({
   timeout: 10_000,
 });
 
+function headersPublicos() {
+  return { Authorization: `Bearer ${SUPABASE_ANON_KEY || ""}` };
+}
+
 // ---- Sessão do Supabase Auth (access_token expira em ~1h, renova via refresh_token) ----
 // Cache em memória pra não bater no banco a cada request; a fonte de
 // verdade fica na tabela ApiSession, que sobrevive a restarts do processo.
@@ -200,7 +204,7 @@ function montarFiltros(linhas: LinhaFiltro[]): FiltrosDisponiveis {
 async function buscarTodasOfertasUpstream(): Promise<Oferta[]> {
   if (!USANDO_UPSTREAM_REAL) return [...MOCK_OFERTAS];
 
-  const headers = await authHeaders();
+  const headers = headersPublicos();
   const paramsBase = { select: "*", order: "id.asc", limit: String(TAMANHO_LOTE_FILTROS) };
   const primeiraResposta = await supabase.get<Oferta[]>("/rest/v1/ofertas_publicas", {
     params: { ...paramsBase, offset: "0" },
@@ -226,7 +230,7 @@ async function buscarStatusUpstream(): Promise<Status> {
     const cidades = new Set(MOCK_OFERTAS.map((oferta) => oferta.cidade));
     return { total: MOCK_OFERTAS.length, cidades: cidades.size, fornecedores: 83 };
   }
-  const headers = await authHeaders();
+  const headers = headersPublicos();
   const { data } = await supabase.post<Status>("/rest/v1/rpc/ofertas_stats", {}, { headers });
   return data;
 }
@@ -288,7 +292,7 @@ export async function buscarOfertas(query: OfertasQuery): Promise<OfertasRespons
     else if (query.sort === "a-z") params.order = "modelo.asc";
     else params.order = "id.desc";
 
-    const headers = { ...(await authHeaders()), Prefer: "count=exact" };
+    const headers = { ...headersPublicos(), Prefer: "count=exact" };
     const { data, headers: resHeaders } = await supabase.get<Oferta[]>("/rest/v1/ofertas_publicas", {
       params,
       headers,
@@ -338,7 +342,7 @@ export async function buscarFiltrosDisponiveis(): Promise<FiltrosDisponiveis> {
     if (USANDO_UPSTREAM_REAL && await cacheOfertasFresco()) {
       linhas = await listarOfertasDoCache();
     } else if (USANDO_UPSTREAM_REAL) {
-      const headers = await authHeaders();
+      const headers = headersPublicos();
       const paramsBase = {
         select: "categoria,condicao,cor,cidade,modelo,variante",
         order: "id.asc",

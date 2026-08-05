@@ -77,6 +77,16 @@ export async function cacheOfertasFresco() {
 
 export async function salvarCacheOfertas(ofertas: Oferta[], status: Status, fornecedores = new Map<number, string>()) {
   const agora = new Date();
+  const fornecedoresAnteriores = await prisma.ofertaCache.findMany({
+    where: { fornecedor: { not: null } },
+    select: { id: true, fornecedor: true },
+  });
+  const fornecedoresResolvidos = new Map<number, string>();
+  for (const item of fornecedoresAnteriores) {
+    if (item.fornecedor) fornecedoresResolvidos.set(item.id, item.fornecedor);
+  }
+  for (const [id, fornecedor] of fornecedores) fornecedoresResolvidos.set(id, fornecedor);
+
   const registros = ofertas.filter((oferta) => Number.isFinite(oferta.id) && Boolean(oferta.modelo)).map((oferta) => ({
     id: oferta.id,
     modelo: String(oferta.modelo),
@@ -94,7 +104,7 @@ export async function salvarCacheOfertas(ofertas: Oferta[], status: Status, forn
     dataAtualizacao: String(oferta.data_atualizacao ?? ""),
     createdAtOrigem: dataValida(oferta.created_at),
     verificado: oferta.verificado,
-    fornecedor: fornecedores.get(oferta.id) ?? null,
+    fornecedor: fornecedoresResolvidos.get(oferta.id) ?? null,
     atualizadoEm: agora,
   }));
 
