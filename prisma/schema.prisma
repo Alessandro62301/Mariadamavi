@@ -110,6 +110,7 @@ model TelegramVinculo {
   codigo         String?   @unique @db.VarChar(64)
   codigoExpiraEm DateTime?
   vinculadoEm    DateTime?
+  contextoBusca  Json?
   criadoEm       DateTime  @default(now())
   atualizadoEm   DateTime  @updatedAt
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
