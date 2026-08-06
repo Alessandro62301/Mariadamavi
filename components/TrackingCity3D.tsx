@@ -5,12 +5,18 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-const routePoints = [
+const routeAnchors = [
   new THREE.Vector3(-7, .28, -3.1),
   new THREE.Vector3(-2.7, .28, .5),
   new THREE.Vector3(2.5, .28, -1.15),
   new THREE.Vector3(7, .28, 2.6),
 ];
+
+const routeCurve = new THREE.CatmullRomCurve3(routeAnchors);
+
+function stepPoints(count: number) {
+  return routeCurve.getSpacedPoints(Math.max(1, count - 1));
+}
 
 const buildings = [
   [-7.1,-.5,1.2,2.8,1.2],[-5.4,-2.6,1.1,1.8,1.1],[-4.5,2.6,1.4,3.8,1.25],
@@ -48,15 +54,15 @@ function Tree({ position }: { position: [number, number, number] }) {
   </group>;
 }
 
-function Package({ active }: { active: number }) {
+function Package({ active, points }: { active: number; points: THREE.Vector3[] }) {
   const ref = useRef<THREE.Group>(null);
   useFrame((state, delta) => {
     if (!ref.current) return;
-    ref.current.position.lerp(routePoints[active], 1 - Math.pow(.001, delta));
+    ref.current.position.lerp(points[active] ?? points[points.length - 1], 1 - Math.pow(.001, delta));
     ref.current.position.y = .72 + Math.sin(state.clock.elapsedTime * 2.6) * .12;
     ref.current.rotation.y += delta * .75;
   });
-  return <group ref={ref} position={routePoints[active]}>
+  return <group ref={ref} position={points[active] ?? points[0]}>
     <RoundedBox args={[.72,.72,.72]} radius={.12} smoothness={4} castShadow>
       <meshStandardMaterial color="#3b2033" roughness={.42} />
     </RoundedBox>
@@ -64,8 +70,9 @@ function Package({ active }: { active: number }) {
   </group>;
 }
 
-function City({ active, onSelect }: { active: number; onSelect: (index: number) => void }) {
+function City({ active, stepCount, onSelect }: { active: number; stepCount: number; onSelect: (index: number) => void }) {
   const roadMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: "#ddceca", roughness: .96 }), []);
+  const points = useMemo(() => stepPoints(stepCount), [stepCount]);
   return <>
     <ambientLight intensity={1.5} />
     <directionalLight position={[-7,13,8]} intensity={2.7} color="#fff6ed" castShadow shadow-mapSize={[2048,2048]} />
@@ -78,19 +85,19 @@ function City({ active, onSelect }: { active: number; onSelect: (index: number) 
     <mesh position={[3.5,-.07,0]} rotation={[0,Math.PI/2,0]} receiveShadow><boxGeometry args={[12,.08,1]} /><primitive object={roadMaterial} attach="material" /></mesh>
     {buildings.map((data,index) => <Building key={index} data={data} accent={index % 5 === 0} />)}
     <Tree position={[-1.9,0,-1.7]} /><Tree position={[-1.1,0,-1.6]} /><Tree position={[2.2,0,2.3]} /><Tree position={[3,0,2.1]} /><Tree position={[5.6,0,.8]} />
-    <Line points={routePoints} color="#3b2033" lineWidth={2.2} dashed dashSize={.28} gapSize={.18} />
-    {routePoints.map((point,index) => <group key={index} position={point} onClick={(event) => { event.stopPropagation(); onSelect(index); }}>
+    <Line points={routeCurve.getPoints(64)} color="#3b2033" lineWidth={2.2} dashed dashSize={.28} gapSize={.18} />
+    {points.map((point,index) => <group key={index} position={point} onClick={(event) => { event.stopPropagation(); onSelect(index); }}>
       <mesh rotation={[Math.PI/2,0,0]} position={[0,.03,0]}><torusGeometry args={[index === active ? .44 : .3,.07,12,30]} /><meshStandardMaterial color={index === active ? "#f47fa4" : "#3b2033"} /></mesh>
       <mesh position={[0,.42,0]} castShadow><sphereGeometry args={[index === active ? .18 : .12,20,20]} /><meshStandardMaterial color={index === active ? "#f47fa4" : "#ffffff"} /></mesh>
     </group>)}
-    <Package active={active} />
+    <Package active={active} points={points} />
     <ContactShadows position={[0,-.08,0]} opacity={.3} scale={24} blur={2.8} far={12} color="#5c354b" />
     <OrbitControls makeDefault enablePan={false} enableZoom={false} minPolarAngle={.72} maxPolarAngle={1.05} minAzimuthAngle={-.72} maxAzimuthAngle={.18} />
   </>;
 }
 
-export default function TrackingCity3D({ active, onSelect }: { active: number; onSelect: (index: number) => void }) {
+export default function TrackingCity3D({ active, stepCount, onSelect }: { active: number; stepCount: number; onSelect: (index: number) => void }) {
   return <Canvas shadows orthographic camera={{ position: [13,11,14], zoom: 53, near: .1, far: 100 }} gl={{ antialias: true, alpha: true }}>
-    <City active={active} onSelect={onSelect} />
+    <City active={active} stepCount={stepCount} onSelect={onSelect} />
   </Canvas>;
 }

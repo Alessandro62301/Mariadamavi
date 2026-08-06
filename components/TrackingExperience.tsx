@@ -2,9 +2,17 @@
 
 import { FormEvent, useState } from "react";
 import styles from "./TrackingExperience.module.css";
-import TrackingCity3D from "./TrackingCity3D";
 
-const journey = [
+type TrackingStep = {
+  place: string;
+  city: string;
+  label: string;
+  date: string;
+  detail: string;
+  icon: string;
+};
+
+const demoJourney: TrackingStep[] = [
   {
     place: "Origem",
     city: "Miami, FL",
@@ -37,17 +45,34 @@ const journey = [
     detail: "Tudo pronto para chegar com segurança no seu endereço.",
     icon: "⌂",
   },
-] as const;
+];
 
 export default function TrackingExperience() {
   const [active, setActive] = useState(2);
   const [code, setCode] = useState("MV-4820-2026");
   const [searchedCode, setSearchedCode] = useState("MV-4820-2026");
+  const [journey, setJourney] = useState<TrackingStep[]>(demoJourney);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function track(event: FormEvent<HTMLFormElement>) {
+  async function track(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalized = code.trim().toUpperCase();
-    if (normalized) setSearchedCode(normalized);
+    if (!normalized) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/rastreio/${encodeURIComponent(normalized)}`);
+      const data = await response.json() as { code?: string; steps?: TrackingStep[]; error?: string };
+      if (!response.ok || !data.steps?.length) throw new Error(data.error || "Nenhum evento encontrado.");
+      setSearchedCode(data.code || normalized);
+      setJourney(data.steps);
+      setActive(data.steps.length - 1);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível consultar o rastreio.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -70,46 +95,66 @@ export default function TrackingExperience() {
             <label htmlFor="tracking-code">Código de rastreio</label>
             <div>
               <input id="tracking-code" value={code} onChange={(event) => setCode(event.target.value)} />
-              <button aria-label="Rastrear pedido">→</button>
+              <button aria-label="Rastrear pedido" disabled={loading}>{loading ? "···" : "→"}</button>
             </div>
+            {error && <p className={styles.trackError} role="status">{error}</p>}
           </form>
         </div>
 
-        <div className={styles.stage} style={{ "--active-step": active } as React.CSSProperties}>
-          <div className={styles.stageTop}>
-            <div><span>Pedido</span><strong>{searchedCode}</strong></div>
-            <p><span /> Em movimento</p>
-          </div>
-
-          <div className={styles.map} aria-label="Mapa interativo da rota da sua encomenda">
-            <div className={styles.cityCanvas}><TrackingCity3D active={active} onSelect={setActive} /></div>
-
-            <article className={styles.floatCard}>
-              <div className={styles.floatIcon}>{journey[active].icon}</div>
-              <div>
-                <span>{journey[active].place} · {journey[active].date}</span>
-                <strong>{journey[active].label}</strong>
-                <p>{journey[active].detail}</p>
+        <div className={styles.stage}>
+          <div className={styles.mobileJourney}>
+            <div className={styles.trackingSummary}>
+              <div className={styles.summaryOrder}>
+                <small>Seu pedido</small>
+                <strong>{searchedCode}</strong>
+                <span><i /> acompanhamento ativo</span>
               </div>
-            </article>
-            <div className={styles.compass} aria-hidden="true"><b>N</b><span>✦</span></div>
+              <div className={styles.summaryState}>
+                <span className={styles.summaryIcon}>{journey[active].icon}</span>
+                <div>
+                  <small>{journey[active].place} · {journey[active].date}</small>
+                  <strong>{journey[active].label}</strong>
+                  <p>{journey[active].detail}</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.wallHeading}>
+              <span>O CAMINHO ATÉ VOCÊ</span>
+              <p>Toque em cada parada para acompanhar a história da sua entrega.</p>
+            </div>
+            <div className={styles.wallPath}>
+              {journey.map((step, index) => (
+                <div
+                  className={`${styles.wallRow} ${index <= active ? styles.wallReached : ""} ${active === index ? styles.wallCurrent : ""}`}
+                  key={`${step.label}-${index}`}
+                >
+                  {index < journey.length - 1 && <span className={styles.wallConnector} />}
+                  <button className={styles.wallStop} onClick={() => setActive(index)} aria-label={`Ver etapa ${index + 1}: ${step.label}`}>
+                    <span className={styles.wallDot}>{index < active ? "✓" : String(index + 1).padStart(2, "0")}</span>
+                    <span className={styles.wallArm} />
+                    {(index === 0 || index === journey.length - 1) && (
+                      <span
+                        className={styles.wallTransport}
+                        data-kind={index === 0 ? "plane" : "home"}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className={styles.wallCard}>
+                      <small>{step.date}</small>
+                      <strong>{step.label}</strong>
+                      <em>{step.city}</em>
+                    </span>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
-
-      <section className={styles.timeline} aria-label="Etapas da entrega">
-        <div className={styles.progress}><span style={{ width: `${(active / 3) * 100}%` }} /></div>
-        {journey.map((step, index) => (
-          <button key={step.label} onClick={() => setActive(index)} className={active === index ? styles.current : ""}>
-            <span className={styles.stepNumber}>{index < active ? "✓" : String(index + 1).padStart(2, "0")}</span>
-            <span><small>{step.date}</small><strong>{step.label}</strong><em>{step.city}</em></span>
-          </button>
-        ))}
       </section>
 
       <footer className={styles.footer}>
         <p><span>✦</span> A gente acompanha até chegar. De verdade.</p>
-        <p>Última atualização há 2 minutos</p>
+        <p>Rastreamento por <a href="https://www.siterastreio.com.br" target="_blank" rel="noreferrer">Site Rastreio</a></p>
       </footer>
     </main>
   );
