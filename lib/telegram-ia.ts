@@ -16,6 +16,10 @@ type ContextoBusca = {
   condicao: string | null;
   cidade: string | null;
   precoMaximo: number | null;
+  aceitaQualquerArmazenamento: boolean;
+  aceitaQualquerCondicao: boolean;
+  aceitaQualquerCor: boolean;
+  pendente: "armazenamento" | "condicao" | "cor" | null;
 };
 
 type Interpretacao = ContextoBusca & {
@@ -41,6 +45,10 @@ const CONTEXTO_VAZIO: ContextoBusca = {
   condicao: null,
   cidade: null,
   precoMaximo: null,
+  aceitaQualquerArmazenamento: false,
+  aceitaQualquerCondicao: false,
+  aceitaQualquerCor: false,
+  pendente: null,
 };
 
 function textoDaResposta(resposta: RespostaOpenAI) {
@@ -67,6 +75,12 @@ function contextoValido(valor: Prisma.JsonValue | null, atualizadoEm: Date): Con
     condicao: typeof item.condicao === "string" ? item.condicao : null,
     cidade: typeof item.cidade === "string" ? item.cidade : null,
     precoMaximo: typeof item.precoMaximo === "number" && item.precoMaximo > 0 ? item.precoMaximo : null,
+    aceitaQualquerArmazenamento: item.aceitaQualquerArmazenamento === true,
+    aceitaQualquerCondicao: item.aceitaQualquerCondicao === true,
+    aceitaQualquerCor: item.aceitaQualquerCor === true,
+    pendente: item.pendente === "armazenamento" || item.pendente === "condicao" || item.pendente === "cor"
+      ? item.pendente
+      : null,
   };
 }
 
@@ -76,7 +90,7 @@ function limparTexto(valor: unknown, limite = 100) {
   return texto ? texto.slice(0, limite) : null;
 }
 
-function validarInterpretacao(valor: unknown): Interpretacao {
+function validarInterpretacao(valor: unknown, contextoAnterior: ContextoBusca): Interpretacao {
   if (!valor || typeof valor !== "object" || Array.isArray(valor)) throw new Error("Resposta estruturada inválida.");
   const item = valor as Record<string, unknown>;
   const acoes = new Set(["buscar", "ajuda", "limpar", "alerta", "conversar"]);
@@ -94,35 +108,71 @@ function validarInterpretacao(valor: unknown): Interpretacao {
     precoMaximo: typeof item.precoMaximo === "number" && Number.isFinite(item.precoMaximo) && item.precoMaximo > 0
       ? item.precoMaximo
       : null,
+    aceitaQualquerArmazenamento: contextoAnterior.aceitaQualquerArmazenamento,
+    aceitaQualquerCondicao: contextoAnterior.aceitaQualquerCondicao,
+    aceitaQualquerCor: contextoAnterior.aceitaQualquerCor,
+    pendente: contextoAnterior.pendente,
     resposta: limparTexto(item.resposta, 300) ?? "O que você gostaria de consultar?",
   };
 }
 
-function aplicarFiltrosExplicitos(mensagem: string, interpretacao: Interpretacao): Interpretacao {
+function aplicarFiltrosExplicitos(
+  mensagem: string,
+  interpretacao: Interpretacao,
+  contextoAnterior: ContextoBusca,
+): Interpretacao {
   const texto = mensagem.toLocaleLowerCase("pt-BR");
   const resultado = { ...interpretacao };
+  const respostaGenerica = /^\s*(qualquer|tanto faz|indiferente)\s*[.!]?\s*$/i.test(texto);
 
-  if (/\bqualquer\s+(?:capacidade|armazenamento|mem[oó]ria)\b/i.test(texto)) {
+  if (resultado.modelo !== contextoAnterior.modelo) {
+    resultado.aceitaQualquerArmazenamento = false;
+    resultado.aceitaQualquerCondicao = false;
+    resultado.aceitaQualquerCor = false;
+  }
+
+  if (/\bqualquer\s+(?:capacidade|armazenamento|mem[oó]ria)\b/i.test(texto)
+    || (respostaGenerica && contextoAnterior.pendente === "armazenamento")) {
     resultado.armazenamento = null;
+    resultado.aceitaQualquerArmazenamento = true;
   } else {
     const capacidadeComUnidade = texto.match(/\b(\d+(?:[.,]\d+)?)\s*(gb|tb)\b/i);
     const capacidadeSemUnidade = texto.match(/\b(32|64|128|256|512|1024|2048)\b/);
     if (capacidadeComUnidade) {
       resultado.armazenamento = `${capacidadeComUnidade[1].replace(",", ".")}${capacidadeComUnidade[2].toUpperCase()}`;
+      resultado.aceitaQualquerArmazenamento = false;
     } else if (capacidadeSemUnidade) {
       const numero = Number(capacidadeSemUnidade[1]);
       resultado.armazenamento = numero >= 1024 ? `${numero / 1024}TB` : `${numero}GB`;
+      resultado.aceitaQualquerArmazenamento = false;
     }
   }
 
-  if (/\bqualquer\s+condi[cç][aã]o\b/i.test(texto)) {
+  if (/\bqualquer\s+condi[cç][aã]o\b/i.test(texto)
+    || (respostaGenerica && contextoAnterior.pendente === "condicao")) {
     resultado.condicao = null;
+    resultado.aceitaQualquerCondicao = true;
   } else if (/\b(usad[oa]|seminov[oa])\b/i.test(texto)) {
     resultado.condicao = "Usado";
+    resultado.aceitaQualquerCondicao = false;
   } else if (!/\bde\s+novo\b/i.test(texto) && /\b(nov[oa]|lacrad[oa]|zero)\b/i.test(texto)) {
     resultado.condicao = "Novo";
+    resultado.aceitaQualquerCondicao = false;
   }
 
+  if (/\bqualquer\s+cor\b/i.test(texto)
+    || (respostaGenerica && contextoAnterior.pendente === "cor")) {
+    resultado.cor = null;
+    resultado.aceitaQualquerCor = true;
+  } else if (contextoAnterior.pendente === "cor" && mensagem.length <= 40) {
+    resultado.cor = mensagem.replace(/^cor\s*[:=-]?\s*/i, "").trim();
+    resultado.aceitaQualquerCor = false;
+  } else if (resultado.cor) {
+    resultado.aceitaQualquerCor = false;
+  }
+
+  if (contextoAnterior.pendente) resultado.acao = "buscar";
+  resultado.pendente = null;
   return resultado;
 }
 
@@ -144,6 +194,7 @@ async function interpretarMensagem(mensagem: string, contexto: ContextoBusca): P
       instructions: [
         "Você interpreta mensagens em português para o buscador de produtos Apple MARIADAMAVI.",
         "Retorne os filtros completos da conversa, combinando a mensagem atual com o contexto fornecido.",
+        "Se o contexto tiver um campo pendente, interprete a resposta curta como resposta para esse campo e mantenha os demais filtros.",
         "Corrija erros comuns como aifone para iPhone e relógio Apple para categoria watch.",
         "Use categoria somente entre iphone, ipad, macbook, watch, acessorios e eletronicos.",
         "Use acao buscar quando houver produto ou filtro suficiente para consultar.",
@@ -187,7 +238,7 @@ async function interpretarMensagem(mensagem: string, contexto: ContextoBusca): P
   const resposta = await response.json() as RespostaOpenAI;
   const texto = textoDaResposta(resposta);
   if (!texto) throw new Error("OpenAI não retornou texto estruturado.");
-  return aplicarFiltrosExplicitos(mensagem, validarInterpretacao(JSON.parse(texto)));
+  return aplicarFiltrosExplicitos(mensagem, validarInterpretacao(JSON.parse(texto), contexto), contexto);
 }
 
 function linkCatalogo(contexto: ContextoBusca) {
@@ -202,20 +253,103 @@ function linkCatalogo(contexto: ContextoBusca) {
   return `${appUrl}/buscador?${params.toString()}`;
 }
 
-async function buscarOfertas(contexto: ContextoBusca) {
+async function filtroDoModelo(contexto: ContextoBusca): Promise<Prisma.OfertaCacheWhereInput> {
   const modeloExato = contexto.modelo
     ? await prisma.ofertaCache.findFirst({
       where: { modeloBase: contexto.modelo },
       select: { modeloBase: true },
     })
     : null;
+  return contexto.modelo
+    ? modeloExato
+      ? { modeloBase: modeloExato.modeloBase }
+      : { modelo: { contains: contexto.modelo } }
+    : {};
+}
+
+function listarOpcoes(opcoes: string[], limite = 8) {
+  const ordenadas = [...opcoes].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const exibidas = ordenadas.slice(0, limite);
+  return `${exibidas.join(", ")}${ordenadas.length > limite ? "..." : ""}`;
+}
+
+async function prepararEspecificacoes(contextoOriginal: ContextoBusca) {
+  const contexto: ContextoBusca = { ...contextoOriginal, pendente: null };
+  if (!contexto.modelo) return { contexto, pergunta: null as string | null };
+
+  const base: Prisma.OfertaCacheWhereInput = {
+    ...(contexto.categoria ? { categoria: contexto.categoria } : {}),
+    ...(await filtroDoModelo(contexto)),
+    ...(contexto.cidade ? { cidade: { contains: contexto.cidade } } : {}),
+    ...(contexto.precoMaximo ? { valorNum: { lte: contexto.precoMaximo } } : {}),
+  };
+
+  if (!contexto.armazenamento && !contexto.aceitaQualquerArmazenamento) {
+    const registros = await prisma.ofertaCache.findMany({
+      where: { ...base, armazenamento: { not: null } },
+      distinct: ["armazenamento"],
+      select: { armazenamento: true },
+    });
+    const opcoes = registros.flatMap((item) => item.armazenamento ? [item.armazenamento] : []);
+    if (opcoes.length === 1) contexto.armazenamento = opcoes[0];
+    else if (opcoes.length > 1) {
+      contexto.pendente = "armazenamento";
+      return {
+        contexto,
+        pergunta: `Qual capacidade você procura?\nOpções: ${listarOpcoes(opcoes)}.\nResponda uma opção ou "qualquer capacidade".`,
+      };
+    }
+  }
+
+  const comArmazenamento: Prisma.OfertaCacheWhereInput = {
+    ...base,
+    ...(contexto.armazenamento ? { armazenamento: contexto.armazenamento } : {}),
+  };
+  if (!contexto.condicao && !contexto.aceitaQualquerCondicao) {
+    const registros = await prisma.ofertaCache.findMany({
+      where: comArmazenamento,
+      distinct: ["condicao"],
+      select: { condicao: true },
+    });
+    const opcoes = registros.map((item) => item.condicao).filter(Boolean);
+    if (opcoes.length === 1) contexto.condicao = opcoes[0];
+    else if (opcoes.length > 1) {
+      contexto.pendente = "condicao";
+      return {
+        contexto,
+        pergunta: `Você prefere novo ou usado?\nOpções: ${listarOpcoes(opcoes)}.\nVocê também pode responder "qualquer condição".`,
+      };
+    }
+  }
+
+  const comCondicao: Prisma.OfertaCacheWhereInput = {
+    ...comArmazenamento,
+    ...(contexto.condicao ? { condicao: contexto.condicao } : {}),
+  };
+  if (!contexto.cor && !contexto.aceitaQualquerCor) {
+    const registros = await prisma.ofertaCache.findMany({
+      where: comCondicao,
+      distinct: ["cor"],
+      select: { cor: true },
+    });
+    const opcoes = registros.map((item) => item.cor).filter(Boolean);
+    if (opcoes.length === 1) contexto.cor = opcoes[0];
+    else if (opcoes.length > 1) {
+      contexto.pendente = "cor";
+      return {
+        contexto,
+        pergunta: `Qual cor você quer?\nOpções: ${listarOpcoes(opcoes)}.\nResponda uma cor ou "qualquer cor".`,
+      };
+    }
+  }
+
+  return { contexto, pergunta: null as string | null };
+}
+
+async function buscarOfertas(contexto: ContextoBusca) {
   const where: Prisma.OfertaCacheWhereInput = {
     ...(contexto.categoria ? { categoria: contexto.categoria } : {}),
-    ...(contexto.modelo
-      ? modeloExato
-        ? { modeloBase: modeloExato.modeloBase }
-        : { modelo: { contains: contexto.modelo } }
-      : {}),
+    ...(await filtroDoModelo(contexto)),
     ...(contexto.cor ? { cor: { contains: contexto.cor } } : {}),
     ...(contexto.armazenamento ? { armazenamento: contexto.armazenamento } : {}),
     ...(contexto.condicao ? { condicao: { contains: contexto.condicao } } : {}),
@@ -232,9 +366,9 @@ async function buscarOfertas(contexto: ContextoBusca) {
 function resumoFiltros(contexto: ContextoBusca) {
   const partes = [
     contexto.modelo,
-    contexto.armazenamento,
-    contexto.cor,
-    contexto.condicao,
+    contexto.armazenamento || (contexto.aceitaQualquerArmazenamento ? "qualquer capacidade" : null),
+    contexto.cor || (contexto.aceitaQualquerCor ? "qualquer cor" : null),
+    contexto.condicao || (contexto.aceitaQualquerCondicao ? "novo ou usado" : null),
     contexto.cidade,
     contexto.precoMaximo ? `até ${contexto.precoMaximo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : null,
   ].filter(Boolean);
@@ -300,6 +434,10 @@ export async function processarConversaTelegram(
     condicao: interpretacao.condicao,
     cidade: interpretacao.cidade,
     precoMaximo: interpretacao.precoMaximo,
+    aceitaQualquerArmazenamento: interpretacao.aceitaQualquerArmazenamento,
+    aceitaQualquerCondicao: interpretacao.aceitaQualquerCondicao,
+    aceitaQualquerCor: interpretacao.aceitaQualquerCor,
+    pendente: interpretacao.pendente,
   };
 
   if (interpretacao.acao === "limpar") return { texto: "Conversa limpa. Qual produto você quer procurar?", contexto: null };
@@ -310,6 +448,9 @@ export async function processarConversaTelegram(
   }
   if (interpretacao.acao !== "buscar") return { texto: interpretacao.resposta, contexto };
 
-  const resultado = await buscarOfertas(contexto);
-  return { texto: formatarResultados(contexto, resultado), contexto };
+  const especificacoes = await prepararEspecificacoes(contexto);
+  if (especificacoes.pergunta) return { texto: especificacoes.pergunta, contexto: especificacoes.contexto };
+
+  const resultado = await buscarOfertas(especificacoes.contexto);
+  return { texto: formatarResultados(especificacoes.contexto, resultado), contexto: especificacoes.contexto };
 }
