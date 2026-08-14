@@ -3,11 +3,11 @@ import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import WhatsAppBubble from "@/components/WhatsAppBubble";
 import FaqAccordion from "@/components/FaqAccordion";
+import CardCarousel from "@/components/CardCarousel";
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
-
-const WA = "https://wa.me/5521920184210";
-const wa = (msg: string) => `${WA}?text=${encodeURIComponent(msg)}`;
+import { INSTAGRAM_HREF, PRIMARY_CTA_HREF, PRIMARY_CTA_LABEL } from "@/lib/siteCta";
 
 const HOME_FAQ = [
   {
@@ -56,13 +56,76 @@ const HOME_FAQ = [
 ];
 
 const TIMELINE = [
-  { titulo: "Contato inicial", texto: "Você me chama contando o que procura e como pretende usar.", emoji: "💬", legenda: "print da conversa" },
-  { titulo: "Formulário", texto: "Você preenche modelo, cor, armazenamento e endereço de entrega.", emoji: "📝", legenda: "print do formulário" },
-  { titulo: "Contrato", texto: "Preparamos o contrato com as condições combinadas: modelo, cor, valor e prazo.", emoji: "📄", legenda: "print do contrato" },
-  { titulo: "Assinatura digital", texto: "O contrato é assinado numa plataforma de assinatura eletrônica, com validade jurídica.", emoji: "✍️", legenda: "assinatura concluída" },
-  { titulo: "Pagamento", texto: "Só depois do contrato assinado o pagamento é feito, via Pix ou cartão.", emoji: "💳", legenda: "comprovante do pagamento" },
-  { titulo: "Chegada até nós", texto: "Produtos que já estão no Brasil levam 2 dias úteis; produtos importados, 7 dias úteis.", emoji: "📦", legenda: "conferência do produto" },
-  { titulo: "Entrega", texto: "Você recebe na sua MaviBag, com rastreio e acompanhamento até a porta.", emoji: "🛍️", legenda: "sua MaviBag chegando" },
+  {
+    titulo: "Chama no WhatsApp",
+    texto: "Você conta o que procura e como pretende usar seu próximo Apple.",
+  },
+  {
+    titulo: "Escolha e orçamento",
+    texto: "Comparamos as opções e deixamos modelo, condição, valor e prazo claros.",
+  },
+  {
+    titulo: "Contrato e pagamento",
+    texto: "Você assina o contrato e só depois faz o pagamento por Pix ou cartão.",
+  },
+  {
+    titulo: "Encomenda e entrega",
+    texto: "Acompanhamos a encomenda, o rastreio e a entrega até chegar à sua porta.",
+  },
+];
+
+const PRODUCT_CARDS = [
+  {
+    nome: "iPhone",
+    texto: "Comunicação, criação, trabalho e rotina.",
+    imagem: "/imgs/iphone-17-pro-max-01.webp",
+    alt: "Caixas de iPhone 17 Pro Max preparadas pela Mavi",
+  },
+  {
+    nome: "iPad",
+    texto: "Estudo, organização, leitura e mobilidade.",
+    imagem: "/imgs/ipad-01.webp",
+    alt: "iPad e Apple Pencil fotografados no espaço da Mavi",
+  },
+  {
+    nome: "MacBook",
+    texto: "Produtividade, estudo e trabalho com mais estrutura.",
+    imagem: "/imgs/macbook-pro.webp",
+    alt: "Caixa de MacBook Pro fotografada pela Mavi",
+  },
+];
+
+const PROOF_ITEMS = [
+  {
+    url: "https://www.instagram.com/p/Dbx0nXVRQGU/",
+    embed: "https://www.instagram.com/p/Dbx0nXVRQGU/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
+  {
+    url: "https://www.instagram.com/p/DYxymoVFEo9/?img_index=1",
+    embed: "https://www.instagram.com/p/DYxymoVFEo9/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
+  {
+    url: "https://www.instagram.com/p/DbtwlVYR1gX/",
+    embed: "https://www.instagram.com/p/DbtwlVYR1gX/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
+  {
+    url: "https://www.instagram.com/p/DbLEEmVxH6i/",
+    embed: "https://www.instagram.com/p/DbLEEmVxH6i/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
+  {
+    url: "https://www.instagram.com/p/Dbn6UkSRTHh/",
+    embed: "https://www.instagram.com/p/Dbn6UkSRTHh/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
+  {
+    url: "https://www.instagram.com/p/DbsybzsEcrV/?img_index=1",
+    embed: "https://www.instagram.com/p/DbsybzsEcrV/embed/",
+    titulo: "Publicação da Mavi no Instagram",
+  },
 ];
 
 type HomeReplicaProps = {
@@ -82,20 +145,20 @@ export default function HomeReplica({ hero, homePath = "/" }: HomeReplicaProps) 
           <section className="hero" id="topo">
           <div className="container">
             <div className="hero-grid">
-              <div className="reveal">
+              <div className="reveal is-visible">
                 <p className="eyebrow">APPLE PARA A VIDA REAL</p>
                 <h1>Seu próximo Apple não precisa ser uma escolha no escuro.</h1>
                 <p className="lead">
                   Eu te ajudo a comparar opções lacradas, CPO e seminovas, entender o que faz sentido pro seu uso e acompanhar cada etapa até a entrega.
                 </p>
                 <div className="hero-ctas">
-                  <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero ajuda para escolher meu próximo Apple.")}>
-                    Quero escolher meu Apple
+                  <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+                    {PRIMARY_CTA_LABEL}
                   </a>
                   <a className="btn btn-secondary" href="#como-funciona">Ver como funciona</a>
                 </div>
               </div>
-              <figure className="reveal" style={{ transitionDelay: "120ms" }}>
+              <figure className="reveal is-visible" style={{ transitionDelay: "120ms" }}>
                 <div className="img-slot" style={{ padding: 0 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -130,130 +193,8 @@ export default function HomeReplica({ hero, homePath = "/" }: HomeReplicaProps) 
           </section>
         )}
 
-        {/* RECONHECIMENTO */}
-        <section id="problema">
-          <div className="container">
-            <h2>Comprar tecnologia deveria organizar sua vida, não criar outra preocupação.</h2>
-            <p className="lead">
-              Entre modelos, configurações, preços e promessas, é fácil ficar sem saber o que vale a pena. Você não precisa entender de tudo pra fazer uma escolha consciente. Precisa de clareza, orientação e um processo que não esconda etapa nenhuma.
-            </p>
-            <p className="destaque">O mais caro nem sempre é o mais adequado. E o mais barato pode não atender ao que você precisa.</p>
-            <div className="grid-3">
-              <div className="card reveal" style={{ transitionDelay: "0ms" }}>
-                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
-                <h3>Escolher sem entender</h3>
-                <p>O modelo certo depende do seu uso, não do que está em promoção.</p>
-              </div>
-              <div className="card reveal" style={{ transitionDelay: "100ms" }}>
-                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                <h3>Comprar sem saber com quem contar</h3>
-                <p>Numa operação online, transparência e acompanhamento não são detalhe. São parte da decisão.</p>
-              </div>
-              <div className="card reveal" style={{ transitionDelay: "200ms" }}>
-                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 12h13l4 4v3h-3M3 12V6h13v6" /><circle cx="7.5" cy="19" r="1.6" /><circle cx="16.5" cy="19" r="1.6" /></svg>
-                <h3>Ficar sozinha depois do pagamento</h3>
-                <p>A experiência não termina quando o Pix cai. Ela continua até você receber.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* GUIA */}
-        <section className="section-plum" id="guia">
-          <div className="container">
-            <div className="guia-grid">
-              <figure>
-                <div
-                  className="img-slot"
-                  style={{ background: "linear-gradient(160deg,#4a2a40,#3B2033)", borderColor: "rgba(247,240,232,.35)" }}
-                  role="img"
-                  aria-label="Maria Victória em atendimento, foto real"
-                >
-                  <span style={{ color: "rgba(247,240,232,.75)" }}>📷 Maria Victória em atendimento</span>
-                </div>
-              </figure>
-              <div>
-                <p className="eyebrow">TEM GENTE DE VERDADE AQUI</p>
-                <h2>Oi, eu sou a Maria Victória.</h2>
-                <p className="lead">
-                  Eu conduzo o atendimento da Mavi e acompanho cada encomenda de perto. Meu papel não é empurrar o aparelho mais caro, e sim entender seu momento, explicar as opções e te ajudar a escolher com mais tranquilidade.
-                </p>
-                <p className="lead">
-                  Nos bastidores, meu marido, Junior, participa comigo da operação e da parte estratégica. Você sempre sabe com quem está falando e em qual etapa está.
-                </p>
-                <p className="destaque on-plum">Não é sobre o aparelho mais caro. É sobre o certo para você.</p>
-                <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero ajuda para escolher meu próximo Apple.")}>
-                  Conversar com a Maria Victória
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* COMO FUNCIONA */}
-        <section id="como-funciona">
-          <div className="container">
-            <h2 className="center">Um caminho simples, explicado antes de você decidir.</h2>
-            <p className="lead center" style={{ maxWidth: "60ch" }}>
-              Do primeiro contato até o aparelho chegar na sua casa: cada etapa explicada antes de você precisar perguntar.
-            </p>
-            <div className="timeline">
-              {TIMELINE.map((step, i) => (
-                <div className="tl-item reveal" style={{ transitionDelay: `${i * 60}ms` }} key={step.titulo}>
-                  <div className="tl-dot">{i + 1}</div>
-                  <div className="tl-content">
-                    <h3>{step.titulo}</h3>
-                    <p>{step.texto}</p>
-                    <div className="tl-thumb" role="img" aria-label={`[SUBSTITUIR: ${step.legenda}]`}>
-                      {step.emoji}
-                      <span>{step.legenda}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="center" style={{ marginTop: 12 }}>
-              <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero ajuda para escolher meu próximo Apple.")}>
-                Começar pelo que eu preciso
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* PRODUTOS */}
-        <section id="produtos" className="section-plum">
-          <div className="container">
-            <p className="eyebrow">ESCOLHA CONSCIENTE</p>
-            <h2>Tecnologia pra viver, trabalhar e crescer com mais estrutura.</h2>
-            <p className="lead">Em vez de começar pelo preço ou pelo modelo mais novo, a gente começa pelo que o aparelho precisa fazer por você.</p>
-            <div className="grid-3">
-              {[
-                { nome: "iPhone", texto: "Comunicação, criação, trabalho e rotina." },
-                { nome: "iPad", texto: "Estudo, organização, leitura e mobilidade." },
-                { nome: "MacBook", texto: "Produtividade, estudo e trabalho com mais estrutura." },
-              ].map((p, i) => (
-                <div className="card reveal" style={{ transitionDelay: `${i * 100}ms` }} key={p.nome}>
-                  <div style={{ aspectRatio: "4/3", borderRadius: 8, background: "rgba(247,240,232,.08)", display: "grid", placeItems: "center", color: "rgba(247,240,232,.6)", fontSize: ".8rem", marginBottom: 14 }}>
-                    📷 {p.nome}
-                  </div>
-                  <h3 style={{ color: "var(--ivory)" }}>{p.nome}</h3>
-                  <p>{p.texto}</p>
-                </div>
-              ))}
-            </div>
-            <p className="nota-categoria" style={{ color: "rgba(247,240,232,.6)" }}>
-              As opções e condições são verificadas no momento do orçamento. A Mavi trabalha por encomenda.
-            </p>
-            <div style={{ marginTop: 20 }}>
-              <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero comparar opções de [iPhone/iPad/MacBook].")}>
-                Quero comparar opções
-              </a>
-            </div>
-          </div>
-        </section>
-
         {/* SEGURANÇA */}
-        <section id="seguranca">
+        <section id="seguranca" className="section-plum">
           <div className="container">
             <p className="eyebrow">CLAREZA EM CADA ETAPA</p>
             <h2>Comprar online pede processo, não promessa vazia.</h2>
@@ -280,24 +221,158 @@ export default function HomeReplica({ hero, homePath = "/" }: HomeReplicaProps) 
                 <span><b>Prazo até chegar até nós.</b> Produtos já no Brasil: 2 dias úteis. Produtos importados: 7 dias úteis. Depois, seguimos direto pra sua entrega.</span>
               </li>
             </ul>
-            <p className="destaque" style={{ fontSize: "clamp(1.3rem,4vw,1.9rem)" }}>Não recebeu o que contratou? Seu dinheiro volta, sem discussão.</p>
-            <a className="btn btn-secondary" href={wa("Oi, Mavi! Vim pelo site e tenho uma dúvida sobre o processo de encomenda.")}>
-              Tirar uma dúvida sobre o processo
+            <p className="destaque on-plum" style={{ fontSize: "clamp(1.3rem,4vw,1.9rem)" }}>Não recebeu o que contratou? Seu dinheiro volta, sem discussão.</p>
+            <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+              {PRIMARY_CTA_LABEL}
             </a>
           </div>
         </section>
 
-        {/* APARELHO COMO ENTRADA */}
-        <section id="entrada">
-          <div className="container" style={{ maxWidth: 820 }}>
-            <h2>Seu aparelho atual pode ajudar no próximo passo.</h2>
-            <div className="callout">
-              <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M3 9l-1 3 1 3M21 9l1 3-1 3" /></svg>
-              <p>Seu iPhone usado pode ser avaliado como parte do pagamento. O valor aprovado é abatido do novo aparelho, conforme a avaliação do seu caso.</p>
+        {/* RECONHECIMENTO */}
+        <section id="problema">
+          <div className="container">
+            <h2>Comprar tecnologia deveria organizar sua vida, não criar outra preocupação.</h2>
+            <p className="lead">
+              Entre modelos, configurações, preços e promessas, é fácil ficar sem saber o que vale a pena. Você não precisa entender de tudo pra fazer uma escolha consciente. Precisa de clareza, orientação e um processo que não esconda etapa nenhuma.
+            </p>
+            <p className="destaque">O mais caro nem sempre é o mais adequado. E o mais barato pode não atender ao que você precisa.</p>
+            <CardCarousel>
+              <div className="card reveal" style={{ transitionDelay: "0ms" }}>
+                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+                <h3>Escolher sem entender</h3>
+                <p>O modelo certo depende do seu uso, não do que está em promoção.</p>
+              </div>
+              <div className="card reveal" style={{ transitionDelay: "100ms" }}>
+                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                <h3>Comprar sem saber com quem contar</h3>
+                <p>Numa operação online, transparência e acompanhamento não são detalhe. São parte da decisão.</p>
+              </div>
+              <div className="card reveal" style={{ transitionDelay: "200ms" }}>
+                <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 12h13l4 4v3h-3M3 12V6h13v6" /><circle cx="7.5" cy="19" r="1.6" /><circle cx="16.5" cy="19" r="1.6" /></svg>
+                <h3>Ficar sozinha depois do pagamento</h3>
+                <p>A experiência não termina quando o Pix cai. Ela continua até você receber.</p>
+              </div>
+            </CardCarousel>
+          </div>
+        </section>
+
+        {/* GUIA */}
+        <section className="section-plum" id="guia">
+          <div className="container">
+            <div className="guia-grid">
+              <figure>
+                <div className="guide-photo">
+                  <Image
+                    src="/imgs/mavi/maria-victoria-macbook.png"
+                    alt="Maria Victória segurando uma caixa de MacBook no espaço da Mavi"
+                    fill
+                    sizes="(min-width: 900px) 36vw, 100vw"
+                  />
+                </div>
+                <figcaption>Maria Victória, acompanhando cada encomenda de perto.</figcaption>
+              </figure>
+              <div>
+                <p className="eyebrow">TEM GENTE DE VERDADE AQUI</p>
+                <h2>Oi, eu sou a Maria Victória.</h2>
+                <p className="lead">
+                  Eu conduzo o atendimento da Mavi e acompanho cada encomenda de perto. Meu papel não é empurrar o aparelho mais caro, e sim entender seu momento, explicar as opções e te ajudar a escolher com mais tranquilidade.
+                </p>
+                <p className="lead">
+                  Nos bastidores, meu marido, Junior, participa comigo da operação e da parte estratégica. Você sempre sabe com quem está falando e em qual etapa está.
+                </p>
+                <p className="destaque on-plum">Não é sobre o aparelho mais caro. É sobre o certo para você.</p>
+                <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+                  {PRIMARY_CTA_LABEL}
+                </a>
+              </div>
             </div>
-            <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero entender como avaliar meu iPhone como parte do pagamento.")}>
-              Quero avaliar meu aparelho
-            </a>
+          </div>
+        </section>
+
+        {/* COMO FUNCIONA */}
+        <section id="como-funciona">
+          <div className="container">
+            <div className="process-intro">
+              <div>
+                <p className="eyebrow">DO PEDIDO À ENTREGA</p>
+                <h2>Um caminho simples, explicado antes de você decidir.</h2>
+                <p className="lead">
+                  Do primeiro contato até o aparelho chegar na sua casa: cada etapa explicada antes de você precisar perguntar.
+                </p>
+              </div>
+              <div className="process-photo">
+                <Image
+                  src="/imgs/caixas-apple.webp"
+                  alt="Caixas de produtos Apple sendo preparadas no espaço da Mavi"
+                  fill
+                  sizes="(min-width: 900px) 42vw, 100vw"
+                />
+              </div>
+            </div>
+            <CardCarousel className="process-carousel">
+              {TIMELINE.map((step, i) => (
+                <div className="card process-card reveal" style={{ transitionDelay: `${i * 60}ms` }} key={step.titulo}>
+                  <span className="process-number" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <h3>{step.titulo}</h3>
+                  <p>{step.texto}</p>
+                </div>
+              ))}
+            </CardCarousel>
+            <div className="center" style={{ marginTop: 12 }}>
+              <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+                {PRIMARY_CTA_LABEL}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* PRODUTOS */}
+        <section id="produtos" className="section-plum">
+          <div className="container">
+            <p className="eyebrow">ESCOLHA CONSCIENTE</p>
+            <h2>Tecnologia pra viver, trabalhar e crescer com mais estrutura.</h2>
+            <p className="lead">Em vez de começar pelo preço ou pelo modelo mais novo, a gente começa pelo que o aparelho precisa fazer por você.</p>
+            <CardCarousel>
+              {PRODUCT_CARDS.map((p, i) => (
+                <div className="card reveal" style={{ transitionDelay: `${i * 100}ms` }} key={p.nome}>
+                  <div className="product-card-image">
+                    <Image src={p.imagem} alt={p.alt} fill sizes="(min-width: 900px) 30vw, 82vw" />
+                  </div>
+                  <h3 style={{ color: "var(--ivory)" }}>{p.nome}</h3>
+                  <p>{p.texto}</p>
+                </div>
+              ))}
+            </CardCarousel>
+            <p className="nota-categoria" style={{ color: "rgba(247,240,232,.6)" }}>
+              As opções e condições são verificadas no momento do orçamento. A Mavi trabalha por encomenda.
+            </p>
+            <div style={{ marginTop: 20 }}>
+              <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+                {PRIMARY_CTA_LABEL}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* APARELHO COMO ENTRADA */}
+        <section id="entrada" className="entry-section">
+          <div className="container">
+            <div className="entry-strip">
+              <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M3 9l-1 3 1 3M21 9l1 3-1 3" /></svg>
+              <div className="entry-copy">
+                <p className="eyebrow">SEU IPHONE PODE ENTRAR NA TROCA</p>
+                <h2>Seu aparelho atual ajuda no próximo passo.</h2>
+                <p>O valor aprovado na avaliação é abatido do novo aparelho.</p>
+              </div>
+              <div className="entry-actions">
+                <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+                  {PRIMARY_CTA_LABEL}
+                </a>
+                <a className="instagram-link" href={INSTAGRAM_HREF} target="_blank" rel="noreferrer">
+                  Ver entregas no Instagram →
+                </a>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -306,28 +381,30 @@ export default function HomeReplica({ hero, homePath = "/" }: HomeReplicaProps) 
           <div className="container">
             <p className="eyebrow">DA CONVERSA À ENTREGA</p>
             <h2>Confiança se constrói mostrando o processo.</h2>
-            <p className="lead">Aqui entram bastidores reais, entregas e feedbacks autorizados, cada um preservando nome, documento, endereço e código de rastreio.</p>
+            <p className="lead">Produtos reais, fotografados nos bastidores da Mavi durante a preparação e a conferência das encomendas.</p>
             <p className="destaque on-plum" style={{ fontSize: "clamp(1.3rem,4vw,1.9rem)" }}>
               Sua encomenda chega numa MaviBag. O momento de abrir também faz parte da experiência.
             </p>
-            <div className="provas-grid">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div className="prova-card reveal" key={i}>
-                  <div className="prova-img" role="img" aria-label="[SUBSTITUIR: foto real do cliente com o produto recebido]">
-                    📷 [foto do cliente]
+            <CardCarousel>
+              {PROOF_ITEMS.map((item, i) => (
+                <div className="prova-card instagram-card reveal" style={{ transitionDelay: `${(i % 3) * 80}ms` }} key={item.url}>
+                  <div className="instagram-embed">
+                    <iframe
+                      src={item.embed}
+                      title={`${item.titulo} ${i + 1}`}
+                      loading="lazy"
+                      allow="encrypted-media"
+                    />
                   </div>
                   <div className="prova-info">
-                    <p className="prova-nome">[Nome do cliente]</p>
-                    <p className="prova-handle">[@instagram]</p>
-                    <p className="prova-produto">[Produto comprado]</p>
+                    <a className="instagram-post-link" href={item.url} target="_blank" rel="noreferrer">
+                      Abrir publicação no Instagram →
+                    </a>
                   </div>
                 </div>
               ))}
-            </div>
-            <p style={{ fontSize: ".85rem", color: "rgba(247,240,232,.6)" }}>
-              Estrutura pronta pro padrão de prova social — trocar cada slot por um caso real aprovado (foto, @instagram e produto). Não publicar nenhum card sem autorização do cliente.
-            </p>
-            <a className="btn btn-on-plum" href="#" style={{ border: "1.5px solid var(--ivory)" }}>Ver mais bastidores no Instagram</a>
+            </CardCarousel>
+            <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>{PRIMARY_CTA_LABEL}</a>
           </div>
         </section>
 
@@ -350,8 +427,8 @@ export default function HomeReplica({ hero, homePath = "/" }: HomeReplicaProps) 
             <p className="eyebrow" style={{ color: "var(--pink)" }}>SEU PRÓXIMO PASSO</p>
             <h2>Seu próximo Apple pode começar com uma conversa simples.</h2>
             <p className="lead center">Me conta o que você procura e como pretende usar. Eu te ajudo a comparar as opções e entender qual caminho faz sentido pro seu momento.</p>
-            <a className="btn btn-primary" href={wa("Oi, Mavi! Vim pelo site e quero contar o que estou procurando.")}>
-              Quero falar com a Mavi
+            <a className="btn btn-primary" href={PRIMARY_CTA_HREF}>
+              {PRIMARY_CTA_LABEL}
             </a>
             <p className="micro">Sem pressão e sem resposta genérica. Primeiro, eu entendo o que você precisa.</p>
           </div>

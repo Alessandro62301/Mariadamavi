@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 const SITE_URL = process.env.APP_URL || "https://mariadamavi.com.br";
@@ -79,6 +80,34 @@ export default function RootLayout({
         />
       </head>
       <body>{children}</body>
+      <Script
+        id="merchantWidgetScript"
+        src="https://www.gstatic.com/shopping/merchant/merchantwidget.js"
+        strategy="afterInteractive"
+        defer
+      />
+      <Script
+        id="merchant-widget-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function () {
+              var script = document.getElementById("merchantWidgetScript");
+              if (!script) return;
+              function startWidget() {
+                if (!window.merchantwidget || typeof window.merchantwidget.start !== "function") return;
+                window.merchantwidget.start({
+                  merchant_id: 5836640234,
+                  position: "BOTTOM_RIGHT",
+                  region: "BR"
+                });
+              }
+              script.addEventListener("load", startWidget, { once: true });
+              startWidget();
+            })();
+          `,
+        }}
+      />
     </html>
   );
 }

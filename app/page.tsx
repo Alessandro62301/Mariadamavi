@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import HomeReplica from "@/components/HomeReplica";
-import { PoemAnimation } from "@/components/ui/3d-animation";
 
 export const metadata: Metadata = {
   title: { absolute: "Maria da Mavi | Apple para a vida real" },
@@ -24,15 +23,6 @@ export const metadata: Metadata = {
   },
 };
 
-const MARQUEE_HTML = `
-  <p>MARIADAMAVI&nbsp; <span>MARIADAMAVI</span>&nbsp; MARIADAMAVI&nbsp; <span>MARIADAMAVI</span>&nbsp; MARIADAMAVI&nbsp; <span>MARIADAMAVI</span>&nbsp; MARIADAMAVI&nbsp; <span>MARIADAMAVI</span>&nbsp;</p>
-`;
-
 export default function HomePage() {
-  return (
-    <HomeReplica
-      homePath="/"
-      hero={<PoemAnimation poemHTML={MARQUEE_HTML} backgroundImageUrl="/imgs/maria-victoria-apple-hero-v2.png" />}
-    />
-  );
+  return <HomeReplica />;
 }

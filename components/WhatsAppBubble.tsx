@@ -1,12 +1,11 @@
 import { WhatsAppIcon } from "./icons";
+import { PRIMARY_CTA_HREF, PRIMARY_CTA_LABEL } from "@/lib/siteCta";
 
 export default function WhatsAppBubble() {
   return (
     <a
       className="cta-bubble"
-      href={`https://wa.me/5521920184210?text=${encodeURIComponent(
-        "Oi, Mavi! Vim pelo site e quero ajuda para escolher meu próximo Apple."
-      )}`}
+      href={PRIMARY_CTA_HREF}
     >
       <span
         className="cta-bubble-avatar"
@@ -18,7 +17,7 @@ export default function WhatsAppBubble() {
       <span className="cta-bubble-badge" aria-hidden="true">
         <WhatsAppIcon className="ic" />
       </span>
-      <span className="sr-only">Conversar com a Mavi no WhatsApp</span>
+      <span className="sr-only">{PRIMARY_CTA_LABEL}</span>
     </a>
   );
 }

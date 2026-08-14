@@ -3,14 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { WhatsAppIcon, MenuIcon } from "./icons";
-
-const WHATSAPP_BASE = "https://wa.me/5521920184210";
+import { PRIMARY_CTA_HREF, PRIMARY_CTA_LABEL } from "@/lib/siteCta";
 
 const NAV_LINKS = [
-  { hash: "como-funciona", label: "Como funciona" },
-  { hash: "produtos", label: "Produtos" },
   { hash: "seguranca", label: "Segurança" },
   { hash: "guia", label: "Sobre a Mavi" },
+  { hash: "como-funciona", label: "Como funciona" },
+  { hash: "produtos", label: "Produtos" },
   { href: "/faq", label: "Dúvidas" },
 ];
 
@@ -34,11 +33,9 @@ export default function SiteHeader({ homePath = "/" }: { homePath?: string }) {
         </nav>
         <a
           className="header-cta"
-          href={`${WHATSAPP_BASE}?text=${encodeURIComponent(
-            "Oi, Mavi! Vim pelo site e quero ajuda para escolher meu próximo Apple."
-          )}`}
+          href={PRIMARY_CTA_HREF}
         >
-          Falar com a Mavi
+          {PRIMARY_CTA_LABEL}
           <span className="cta-ic" aria-hidden="true">
             <WhatsAppIcon className="ic" />
           </span>
