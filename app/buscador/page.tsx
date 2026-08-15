@@ -126,11 +126,13 @@ function BuscadorConteudo() {
   useEffect(() => {
     const controller = new AbortController();
 
-    Promise.all([
-      fetch("/api/buscador/ofertas", { signal: controller.signal }),
-      fetch("/api/buscador/configuracoes", { signal: controller.signal }),
-    ])
-      .then(async ([ofertasResponse, configuracoesResponse]) => {
+    async function carregar() {
+      try {
+        const [ofertasResponse, configuracoesResponse] = await Promise.all([
+          fetch("/api/buscador/ofertas", { signal: controller.signal }),
+          fetch("/api/buscador/configuracoes", { signal: controller.signal }),
+        ]);
+        if (controller.signal.aborted) return;
         if (ofertasResponse.status === 401 || configuracoesResponse.status === 401) {
           router.push("/buscador/login");
           return;
@@ -140,6 +142,7 @@ function BuscadorConteudo() {
           ofertasResponse.json() as Promise<OfertasResponse>,
           configuracoesResponse.json(),
         ]);
+        if (controller.signal.aborted) return;
         setTodasOfertas(catalogo.items);
         const paramsAtuais = new URLSearchParams(window.location.search);
         if (!paramsAtuais.has("categoria")) {
@@ -147,16 +150,17 @@ function BuscadorConteudo() {
           params.set("categoria", configuracoes.preferencias.categoriaPadrao);
           router.replace(`${pathname}?${params.toString()}`, { scroll: false });
         }
-      })
-      .catch((error) => {
+      } catch (error) {
+        if (controller.signal.aborted) return;
         if (error instanceof DOMException && error.name === "AbortError") return;
         setErro("Não foi possível carregar o catálogo.");
-      })
-      .finally(() => {
+      } finally {
         if (!controller.signal.aborted) setCarregando(false);
-      });
+      }
+    }
 
-    return () => controller.abort();
+    carregar();
+    return () => controller.abort("component-cleanup");
   }, [pathname, router]);
 
   useEffect(() => {
