@@ -389,10 +389,11 @@ export async function buscarFiltrosDisponiveis(): Promise<FiltrosDisponiveis> {
 export async function buscarContato(id: number): Promise<Contato | null> {
   if (USANDO_UPSTREAM_REAL) {
     // A RPC ofertas_contatos não recebe parâmetros — retorna o(s) contato(s)
-    // disponível(is) no momento. Filtramos pelo id localmente por segurança.
+    // disponível(is) no momento. Sem correspondência exata de id devolvemos
+    // null: cair no primeiro da lista mandaria a Maria pro fornecedor errado.
     const headers = await authHeaders();
     const { data } = await supabase.post<Contato[]>("/rest/v1/rpc/ofertas_contatos", {}, { headers });
-    return data.find((c) => c.id === id) ?? data[0] ?? null;
+    return data.find((c) => c.id === id) ?? null;
   }
   return mockContatoPorId(id);
 }

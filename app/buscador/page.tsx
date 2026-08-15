@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FiltrosDisponiveis, Oferta, OfertasResponse } from "@/lib/types";
-import { WhatsAppIcon } from "@/components/icons";
+import { ChevronDownIcon, WhatsAppIcon } from "@/components/icons";
 import Link from "next/link";
 import { SelectDropdown } from "@/components/select-dropdown";
 
@@ -96,7 +96,7 @@ function BuscadorConteudo() {
   const categoria = searchParams.get("categoria") ?? "iphone";
   const modelo = searchParams.get("modelo") ?? "";
   const condicao = searchParams.get("condicao") ?? "";
-  const cor = searchParams.get("cor") ?? "";
+  const corParam = searchParams.get("cor") ?? "";
   const armazenamento = searchParams.get("armazenamento") ?? "";
   const estado = searchParams.get("estado") ?? "";
   const cidade = searchParams.get("cidade") ?? "";
@@ -112,6 +112,9 @@ function BuscadorConteudo() {
   const [contatoCarregando, setContatoCarregando] = useState<number | null>(null);
   const [buscaTexto, setBuscaTexto] = useState(q);
   const [markup, setMarkup] = useState(12);
+  const [seletorCorAberto, setSeletorCorAberto] = useState(false);
+
+  const cores = useMemo(() => corParam.split(",").map((valor) => valor.trim()).filter(Boolean), [corParam]);
 
   const alterarFiltro = useCallback((nome: string, valor: string, opcoes?: { manterPagina?: boolean }) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -185,54 +188,47 @@ function BuscadorConteudo() {
     return todasOfertas.reduce((menor, atual) => (atual.valor_num < menor.valor_num ? atual : menor));
   }, [todasOfertas]);
 
-  const filtros = useMemo<FiltrosDisponiveis>(() => {
-    const categorias = CATEGORIAS.map((valor) => ({
+  const categorias = useMemo(
+    () => CATEGORIAS.map((valor) => ({
       valor,
       total: todasOfertas.filter((oferta) => oferta.categoria === valor).length,
-    }));
-    const modelos = CATEGORIAS.flatMap((categoriaAtual) =>
-      opcoesComContagem(todasOfertas.filter((oferta) => oferta.categoria === categoriaAtual).map((oferta) => extrairModeloBase(oferta.modelo)))
-        .map((item) => ({ ...item, categoria: categoriaAtual })),
-    );
-    const cidades = opcoesComContagem(todasOfertas.map((oferta) => oferta.cidade)).map((item) => ({
-      ...item,
-      estado: extrairEstado(item.valor),
-    }));
-    return {
-      categorias,
-      modelos,
-      condicoes: opcoesComContagem(todasOfertas.map((oferta) => oferta.condicao)),
-      cores: opcoesComContagem(todasOfertas.map((oferta) => oferta.cor)),
-      armazenamentos: opcoesComContagem(todasOfertas.map((oferta) => extrairArmazenamento(oferta.modelo, oferta.variante))),
-      estados: opcoesComContagem(todasOfertas.map((oferta) => extrairEstado(oferta.cidade))),
-      cidades,
-      geradoEm: new Date().toISOString(),
-    };
-  }, [todasOfertas]);
-
-  const fornecedoresDisponiveis = useMemo(
-    () => opcoesComContagem(todasOfertas.map((oferta) => oferta.fornecedor ?? "")),
+    })),
     [todasOfertas],
   );
 
-  const itensFiltrados = useMemo(() => {
+  // As opções de cada select saem do conjunto já restrito pelos outros
+  // filtros ativos, então escolher "MacBook" nunca oferece cor/capacidade
+  // que não existe nessa categoria.
+  const aplicarFiltros = useCallback((ofertas: Oferta[], ignorar?: string) => {
     const termoBusca = buscaTexto.trim().toLocaleLowerCase("pt-BR");
-    return todasOfertas.filter((oferta) => {
+    return ofertas.filter((oferta) => {
       if (!termoBusca && categoria && oferta.categoria !== categoria) return false;
-      if (modelo && extrairModeloBase(oferta.modelo) !== modelo) return false;
-      if (condicao && oferta.condicao !== condicao) return false;
-      if (cor && oferta.cor !== cor) return false;
-      if (armazenamento && extrairArmazenamento(oferta.modelo, oferta.variante) !== armazenamento) return false;
-      if (estado && extrairEstado(oferta.cidade) !== estado) return false;
-      if (cidade && oferta.cidade !== cidade) return false;
-      if (fornecedor && oferta.fornecedor !== fornecedor) return false;
+      if (ignorar !== "modelo" && modelo && extrairModeloBase(oferta.modelo) !== modelo) return false;
+      if (ignorar !== "condicao" && condicao && oferta.condicao !== condicao) return false;
+      if (ignorar !== "cor" && cores.length > 0 && !cores.includes(oferta.cor)) return false;
+      if (ignorar !== "armazenamento" && armazenamento && extrairArmazenamento(oferta.modelo, oferta.variante) !== armazenamento) return false;
+      if (ignorar !== "estado" && estado && extrairEstado(oferta.cidade) !== estado) return false;
+      if (ignorar !== "cidade" && cidade && oferta.cidade !== cidade) return false;
+      if (ignorar !== "fornecedor" && fornecedor && oferta.fornecedor !== fornecedor) return false;
       if (termoBusca) {
         const alvo = `${oferta.modelo} ${oferta.fornecedor ?? ""} ${oferta.cor}`.toLocaleLowerCase("pt-BR");
         if (!alvo.includes(termoBusca)) return false;
       }
       return true;
     });
-  }, [armazenamento, buscaTexto, categoria, cidade, condicao, cor, estado, fornecedor, modelo, todasOfertas]);
+  }, [armazenamento, buscaTexto, categoria, cidade, condicao, cores, estado, fornecedor, modelo]);
+
+  const opcoes = useMemo(() => ({
+    condicoes: opcoesComContagem(aplicarFiltros(todasOfertas, "condicao").map((oferta) => oferta.condicao)),
+    cores: opcoesComContagem(aplicarFiltros(todasOfertas, "cor").map((oferta) => oferta.cor)),
+    armazenamentos: opcoesComContagem(aplicarFiltros(todasOfertas, "armazenamento").map((oferta) => extrairArmazenamento(oferta.modelo, oferta.variante))),
+    estados: opcoesComContagem(aplicarFiltros(todasOfertas, "estado").map((oferta) => extrairEstado(oferta.cidade))),
+    cidades: opcoesComContagem(aplicarFiltros(todasOfertas, "cidade").map((oferta) => oferta.cidade))
+      .map((item) => ({ ...item, estado: extrairEstado(item.valor) })),
+    fornecedores: opcoesComContagem(aplicarFiltros(todasOfertas, "fornecedor").map((oferta) => oferta.fornecedor ?? "")),
+  }), [aplicarFiltros, todasOfertas]);
+
+  const itensFiltrados = useMemo(() => aplicarFiltros(todasOfertas), [aplicarFiltros, todasOfertas]);
 
   const menorCustoPorGrupo = useMemo(() => {
     const mapa = new Map<string, number>();
@@ -256,8 +252,8 @@ function BuscadorConteudo() {
   }, [itensFiltrados, itensPorPagina, page, sort]);
 
   const cidadesDoEstado = useMemo(() => {
-    return filtros.cidades.filter((item) => !estado || item.estado === estado);
-  }, [estado, filtros.cidades]);
+    return opcoes.cidades.filter((item) => !estado || item.estado === estado);
+  }, [estado, opcoes.cidades]);
 
   const totalPaginas = Math.max(1, Math.ceil(resultado.total / resultado.pageSize));
 
@@ -277,6 +273,11 @@ function BuscadorConteudo() {
     params.delete("cidade");
     params.delete("page");
     router.replace(params.size ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
+  }
+
+  function alternarCor(valor: string) {
+    const proximas = cores.includes(valor) ? cores.filter((item) => item !== valor) : [...cores, valor];
+    alterarFiltro("cor", proximas.join(","));
   }
 
   function confirmarBusca(valor?: string) {
@@ -394,7 +395,7 @@ function BuscadorConteudo() {
 
           <div className="filtro-bar__categorias">
             <button type="button" className={!categoria ? "ativo" : ""} onClick={() => mudarCategoria("")}>Todos</button>
-            {filtros.categorias.map((item) => (
+            {categorias.map((item) => (
               <button
                 type="button"
                 key={item.valor}
@@ -413,7 +414,7 @@ function BuscadorConteudo() {
                 ariaLabel="Condição"
                 value={condicao}
                 onChange={(value) => alterarFiltro("condicao", value)}
-                options={[{ value: "", label: "Todas" }, ...filtros.condicoes.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                options={[{ value: "", label: "Todas" }, ...opcoes.condicoes.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
               />
             </div>
             <div>
@@ -422,17 +423,28 @@ function BuscadorConteudo() {
                 ariaLabel="Armazenamento"
                 value={armazenamento}
                 onChange={(value) => alterarFiltro("armazenamento", value)}
-                options={[{ value: "", label: "Todos" }, ...filtros.armazenamentos.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                options={[{ value: "", label: "Todos" }, ...opcoes.armazenamentos.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
               />
             </div>
             <div>
               <span>Cor</span>
-              <SelectDropdown
-                ariaLabel="Cor"
-                value={cor}
-                onChange={(value) => alterarFiltro("cor", value)}
-                options={[{ value: "", label: "Todas as cores" }, ...filtros.cores.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
-              />
+              <button
+                type="button"
+                className={`seletor-cor__trigger ${cores.length > 0 ? "ativo" : ""}`}
+                aria-haspopup="dialog"
+                aria-expanded={seletorCorAberto}
+                onClick={() => setSeletorCorAberto(true)}
+              >
+                <span className="seletor-cor__amostras" aria-hidden="true">
+                  {(cores.length > 0 ? cores : opcoes.cores.slice(0, 4).map((item) => item.valor)).slice(0, 4).map((nome) => (
+                    <span key={nome} style={{ background: corSwatch(nome) }} />
+                  ))}
+                </span>
+                <span className="seletor-cor__rotulo">
+                  {cores.length === 0 ? "Todas as cores" : cores.length === 1 ? cores[0] : `${cores.length} cores`}
+                </span>
+                <ChevronDownIcon className="ic" />
+              </button>
             </div>
             <div>
               <span>Estado</span>
@@ -440,7 +452,7 @@ function BuscadorConteudo() {
                 ariaLabel="Estado"
                 value={estado}
                 onChange={mudarEstado}
-                options={[{ value: "", label: "Todo o Brasil" }, ...filtros.estados.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                options={[{ value: "", label: "Todo o Brasil" }, ...opcoes.estados.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
               />
             </div>
             <div>
@@ -459,7 +471,7 @@ function BuscadorConteudo() {
                 ariaLabel="Fornecedor"
                 value={fornecedor}
                 onChange={(value) => alterarFiltro("fornecedor", value)}
-                options={[{ value: "", label: "Todos os fornecedores" }, ...fornecedoresDisponiveis.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
+                options={[{ value: "", label: "Todos os fornecedores" }, ...opcoes.fornecedores.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
               />
             </div>
           </div>
@@ -505,8 +517,15 @@ function BuscadorConteudo() {
                 return (
                   <article className={`tabela-ofertas__linha ${indice % 2 ? "linha-alt" : ""}`} key={oferta.id}>
                     <div className="celula-produto">
-                      <span className="swatch" style={{ background: corSwatch(oferta.cor) }} aria-hidden="true">
-                        <span />
+                      <span className="produto-foto" style={{ background: corSwatch(oferta.cor) }}>
+                        {oferta.foto_url && (
+                          <img
+                            src={oferta.foto_url}
+                            alt={`Foto de ${oferta.modelo}`}
+                            loading="lazy"
+                            onError={(event) => { event.currentTarget.hidden = true; }}
+                          />
+                        )}
                       </span>
                       <span className="celula-produto__info">
                         <span className="celula-produto__nome">{oferta.modelo}</span>
@@ -566,6 +585,47 @@ function BuscadorConteudo() {
           </div>
         )}
       </main>
+
+      {seletorCorAberto && (
+        <div className="modal-cor" role="dialog" aria-modal="true" aria-label="Escolher cores">
+          <button type="button" className="modal-cor__fundo" aria-label="Fechar" onClick={() => setSeletorCorAberto(false)} />
+          <div className="modal-cor__caixa">
+            <div className="modal-cor__topo">
+              <div>
+                <h3>Cores</h3>
+                <p>{cores.length === 0 ? "Todas as cores" : `${cores.length} selecionada${cores.length > 1 ? "s" : ""}`}</p>
+              </div>
+              <button type="button" className="modal-cor__fechar" aria-label="Fechar" onClick={() => setSeletorCorAberto(false)}>×</button>
+            </div>
+            <div className="modal-cor__grade">
+              {opcoes.cores.map((item) => {
+                const marcada = cores.includes(item.valor);
+                return (
+                  <button
+                    type="button"
+                    key={item.valor}
+                    className={`cor-opcao ${marcada ? "marcada" : ""}`}
+                    aria-pressed={marcada}
+                    onClick={() => alternarCor(item.valor)}
+                  >
+                    <span className="cor-opcao__bola" style={{ background: corSwatch(item.valor) }}>
+                      {marcada && <span className="cor-opcao__check" aria-hidden="true">✓</span>}
+                    </span>
+                    <span className="cor-opcao__nome">{item.valor}</span>
+                    <span className="cor-opcao__total">{item.total.toLocaleString("pt-BR")}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="modal-cor__rodape">
+              <button type="button" className="modal-cor__limpar" onClick={() => alterarFiltro("cor", "")} disabled={cores.length === 0}>Limpar</button>
+              <button type="button" className="modal-cor__aplicar" onClick={() => setSeletorCorAberto(false)}>
+                Ver {itensFiltrados.length.toLocaleString("pt-BR")} ofertas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
