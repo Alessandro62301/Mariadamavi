@@ -243,15 +243,34 @@ async function buscarContatosUpstream(): Promise<Contato[]> {
 }
 
 export async function atualizarCacheOfertas() {
+  let erroContatos: string | null = null;
   const contatosPromise = buscarContatosUpstream().catch((error) => {
-    console.error("[cache/fornecedores]", error instanceof Error ? error.message : "Falha ao carregar fornecedores");
-    return [];
+    erroContatos = error instanceof Error ? error.message : "Falha ao carregar fornecedores";
+    console.error("[cache/fornecedores]", erroContatos);
+    return [] as Contato[];
   });
   const [ofertas, status, contatos] = await Promise.all([buscarTodasOfertasUpstream(), buscarStatusUpstream(), contatosPromise]);
   const fornecedores = new Map(contatos.map((contato) => [contato.id, contato.fornecedor]));
   await salvarCacheOfertas(ofertas, { ...status, total: ofertas.length }, fornecedores);
   cacheFiltros = null;
-  return { total: ofertas.length, atualizadoEm: new Date().toISOString() };
+
+  // Sem contatos o catálogo grava fornecedor NULL e o WhatsApp para de
+  // funcionar. Isso passava batido porque o erro só ia pro console.
+  const semFornecedor = contatos.length === 0 && ofertas.length > 0;
+  if (semFornecedor) {
+    console.error(
+      "[cache/fornecedores] cache salvo SEM fornecedores —",
+      erroContatos ?? "a origem devolveu lista vazia (sessão sem permissão de ver contatos?)",
+    );
+  }
+
+  return {
+    total: ofertas.length,
+    contatos: contatos.length,
+    fornecedoresOk: !semFornecedor,
+    ...(semFornecedor ? { avisoFornecedores: erroContatos ?? "origem devolveu lista vazia" } : {}),
+    atualizadoEm: new Date().toISOString(),
+  };
 }
 
 export async function buscarOfertas(query: OfertasQuery): Promise<OfertasResponse> {

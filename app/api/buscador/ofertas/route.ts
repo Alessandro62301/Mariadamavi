@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { listarOfertasDoCache } from "@/lib/cache-ofertas";
+import { cacheOfertasFresco, listarOfertasDoCache } from "@/lib/cache-ofertas";
 import { atualizarCacheOfertas } from "@/lib/upstream";
 
 export async function GET() {
   try {
     let items = await listarOfertasDoCache();
-    if (items.length === 0) {
+    // Só "tabela vazia" não bastava: a origem recria as ofertas com ids novos
+    // a cada coleta, então um cache velho serve ids que não existem mais e o
+    // contato do fornecedor deixa de casar. Aqui o TTL também vale.
+    if (items.length === 0 || !(await cacheOfertasFresco())) {
       await atualizarCacheOfertas();
       items = await listarOfertasDoCache();
     }
