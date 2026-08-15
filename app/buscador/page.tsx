@@ -223,8 +223,6 @@ function BuscadorConteudo() {
     cores: opcoesComContagem(aplicarFiltros(todasOfertas, "cor").map((oferta) => oferta.cor)),
     armazenamentos: opcoesComContagem(aplicarFiltros(todasOfertas, "armazenamento").map((oferta) => extrairArmazenamento(oferta.modelo, oferta.variante))),
     estados: opcoesComContagem(aplicarFiltros(todasOfertas, "estado").map((oferta) => extrairEstado(oferta.cidade))),
-    cidades: opcoesComContagem(aplicarFiltros(todasOfertas, "cidade").map((oferta) => oferta.cidade))
-      .map((item) => ({ ...item, estado: extrairEstado(item.valor) })),
     fornecedores: opcoesComContagem(aplicarFiltros(todasOfertas, "fornecedor").map((oferta) => oferta.fornecedor ?? "")),
   }), [aplicarFiltros, todasOfertas]);
 
@@ -250,10 +248,6 @@ function BuscadorConteudo() {
     const inicio = (page - 1) * itensPorPagina;
     return { items: items.slice(inicio, inicio + itensPorPagina), total, page, pageSize: itensPorPagina };
   }, [itensFiltrados, itensPorPagina, page, sort]);
-
-  const cidadesDoEstado = useMemo(() => {
-    return opcoes.cidades.filter((item) => !estado || item.estado === estado);
-  }, [estado, opcoes.cidades]);
 
   const totalPaginas = Math.max(1, Math.ceil(resultado.total / resultado.pageSize));
 
@@ -408,14 +402,24 @@ function BuscadorConteudo() {
           </div>
 
           <div className="filtro-bar__selects">
-            <div>
+            <div className="filtro-condicao">
               <span>Condição</span>
-              <SelectDropdown
-                ariaLabel="Condição"
-                value={condicao}
-                onChange={(value) => alterarFiltro("condicao", value)}
-                options={[{ value: "", label: "Todas" }, ...opcoes.condicoes.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
-              />
+              <div className="radio-condicao" role="radiogroup" aria-label="Condição">
+                {[{ valor: "", total: itensFiltrados.length }, ...opcoes.condicoes].map((item) => (
+                  <button
+                    type="button"
+                    key={item.valor || "todas"}
+                    role="radio"
+                    aria-checked={condicao === item.valor}
+                    className={condicao === item.valor ? "marcado" : ""}
+                    onClick={() => alterarFiltro("condicao", item.valor)}
+                  >
+                    <span className="radio-condicao__bola" aria-hidden="true" />
+                    <span className="radio-condicao__nome">{item.valor || "Todas"}</span>
+                    <span className="radio-condicao__total">{item.total.toLocaleString("pt-BR")}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <span>Armazenamento</span>
@@ -453,16 +457,6 @@ function BuscadorConteudo() {
                 value={estado}
                 onChange={mudarEstado}
                 options={[{ value: "", label: "Todo o Brasil" }, ...opcoes.estados.map((item) => ({ value: item.valor, label: `${item.valor} — ${item.total.toLocaleString("pt-BR")}` }))]}
-              />
-            </div>
-            <div>
-              <span>Cidade</span>
-              <SelectDropdown
-                ariaLabel="Cidade"
-                value={cidade}
-                disabled={!estado}
-                onChange={(value) => alterarFiltro("cidade", value)}
-                options={[{ value: "", label: "Todas" }, ...cidadesDoEstado.map((item) => ({ value: item.valor, label: `${item.valor.replace(/,\s*[A-Z]{2}$/i, "")} — ${item.total.toLocaleString("pt-BR")}` }))]}
               />
             </div>
             <div>

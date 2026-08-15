@@ -368,7 +368,10 @@ footer{background:var(--plum);color:var(--ivory);padding:56px 0 100px}
 }
 
 .busca-shell{min-height:100vh;background:var(--bg)}
+/* sobrescreve o header fixo do site público: aqui ele ocupa espaço no fluxo
+   (senão o topo dos KPIs fica escondido atrás da barra) */
 .busca-header{
+  position:sticky;top:0;z-index:60;
   background:var(--plum);color:var(--ivory);
   padding:14px max(clamp(16px,3vw,28px),calc((100% - 1560px) / 2 + clamp(16px,3vw,28px)));
   display:flex;align-items:center;gap:20px;flex-wrap:wrap;
@@ -425,9 +428,27 @@ footer{background:var(--plum);color:var(--ivory);padding:56px 0 100px}
   border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
 }
 .filtro-bar__categorias button.ativo{background:var(--plum);border-color:var(--plum);color:var(--ivory)}
-.filtro-bar__selects{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.filtro-bar__selects{display:grid;grid-template-columns:1.6fr repeat(4,minmax(0,1fr));gap:12px;border-top:1px solid var(--line);padding-top:14px}
 .filtro-bar__selects>div{display:flex;flex-direction:column;gap:6px;min-width:0}
 .filtro-bar__selects>div>span{font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.radio-condicao{display:flex;gap:6px}
+.radio-condicao button{
+  flex:1;min-width:0;min-height:42px;display:flex;align-items:center;gap:7px;padding:8px 10px;
+  border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink-soft);
+  font-family:var(--font-body);font-size:.76rem;font-weight:600;cursor:pointer;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.radio-condicao button:hover{border-color:var(--rose)}
+.radio-condicao button.marcado{border-color:var(--pink);background:rgba(244,127,164,.1);color:var(--plum)}
+.radio-condicao__bola{
+  width:16px;height:16px;border-radius:999px;border:2px solid rgba(59,32,51,.3);
+  background:var(--surface);flex:0 0 auto;display:grid;place-items:center;
+}
+.radio-condicao button.marcado .radio-condicao__bola{border-color:var(--pink)}
+.radio-condicao button.marcado .radio-condicao__bola::after{content:"";width:8px;height:8px;border-radius:999px;background:var(--pink)}
+.radio-condicao__nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.radio-condicao__total{margin-left:auto;font-size:.68rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 
 .seletor-cor__trigger{
   width:100%;min-height:42px;display:flex;align-items:center;gap:8px;padding:8px 11px;
@@ -516,8 +537,11 @@ footer{background:var(--plum);color:var(--ivory);padding:56px 0 100px}
   min-width:1180px;display:grid;grid-template-columns:3fr 1.5fr 1.4fr 1fr 1fr 1fr 140px;gap:16px;padding:14px 22px;align-items:center;
 }
 .tabela-ofertas__cabecalho{
-  position:sticky;top:0;z-index:2;background:rgba(59,32,51,.07);font-size:.7rem;font-weight:700;
+  /* opaco de propósito: como é sticky, um fundo translúcido deixaria as
+     linhas passarem por baixo do cabeçalho ao rolar */
+  position:sticky;top:0;z-index:2;background:#F1EFF1;font-size:.7rem;font-weight:700;
   letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);
+  box-shadow:0 1px 0 rgba(59,32,51,.12);
 }
 .tabela-ofertas__linha{border-top:1px solid rgba(59,32,51,.1);background:var(--surface)}
 .tabela-ofertas__linha.linha-alt{background:#FBF6F0}
@@ -564,6 +588,7 @@ footer{background:var(--plum);color:var(--ivory);padding:56px 0 100px}
 @media(max-width:1100px){
   .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .filtro-bar__selects{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .filtro-condicao{grid-column:1/-1}
 }
 @media(max-width:760px){
   .busca-header{padding:12px 16px}
